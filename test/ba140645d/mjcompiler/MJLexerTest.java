@@ -9,13 +9,12 @@ import org.apache.log4j.xml.DOMConfigurator;
 import java.io.*;
 
 public class MJLexerTest{
-    static{
+    static {
         DOMConfigurator.configure(Log4JUtil.instance().findLoggerConfigFile());
         Log4JUtil.instance().prepareLogFile(Logger.getRootLogger());
     }
     public static void main(String[] args) throws IOException
     {
-
         Logger log = Logger.getLogger(MJLexerTest.class);
         Reader bufferReader = null;
 

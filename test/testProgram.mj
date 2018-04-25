@@ -1,4 +1,5 @@
 program P
+cost char sizeC = "z"
 const int size = 10;
 class Table {
 int pos[], neg[];

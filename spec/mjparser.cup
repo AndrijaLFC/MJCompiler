@@ -1,0 +1,60 @@
+
+
+
+
+
+terminal PROGRAM, ;
+non terminal  Program, ;
+
+
+Program ::= PROGRAM IDENTIFIKATOR ConstVarClassDecl OP_L_BRACE_PARENTHESES MethodDecl OP_R_BRACE_PARENTHESES ;
+
+ConstVarClassDecl ::= ConstDecl | VarDecl | ClassDecl | /* epsilon */ ;
+
+// deklaracija konstanti
+ConstDecl ::= CONST Type IDENTIFIKATOR OP_EQUAL NumCharBoolConst ConstDeclRepeatList  OP_SEMICOLN  ;
+
+ConstDeclRepeatList ::= ConstDeclRepeatList ConstDeclRepeat | /* epsilon */ ;
+ConstDeclRepeat ::= OP_COMMA IDENTIFIKATOR OP_EQUAL NumCharBoolConst | /* epsilon*/ ;
+
+NumCharBoolConst ::= NUM_CONST | CHAR_CONST | BOOL_CONST ;
+
+
+// deklaracija promenljivih
+VarDecl ::= Type IDENTIFIKATOR VarDeclRepeatList OP_SEMICOLN  ;
+VarDeclList ::= VarDeclList VarDecl | /* epsilon */ ;
+VarDeclRepeatList ::= VarDeclRepeatList VarDeclRepeat | /* epsilon */ ;
+VarDeclRepeat ::= OP_COMMA IDENTIFIKATOR  OptArrayDecl | /* epsilon */ ;
+
+
+OptArrayDecl ::= OP_L_SQUARED_PARENTHESES OP_R_SQUARED_PARANTHESES  | /* epsilon */ ;
+
+Type ::= IDENTIFIKATOR ;
+
+
+// deklaracija klase
+
+ClassDecl ::= CLASS IDENTIFIKATOR OptExtends OP_L_BRACE_PARENTHESES VarDeclList OptMethodDeclList OP_R_BRACE_PARENTHESES ;
+
+OptExtends ::= EXTENDS Type ;
+OptMethodDeclList ::= MethodDeclList | /* epsilon */ ;
+
+
+
+// deklaracija metoda
+MethodDeclList ::= MethodDeclList | MethodDecl | /* epsilon */ ;
+
+MethodDecl ::= ReturnType IDENTIFIKATOR  OP_L_PARENTHESES OptFormPars OP_R_PARENTHESES VarDeclList OP_L_BRACE_PARENTHESES StatementList OP_R_BRACE_PARENTHESES  ;
+ReturnType ::= Type | VOID ;
+
+OptFormPars ::= FormPars |  /* epsilon */;
+
+// formalni parametri
+FormPars ::= Type IDENTIFIKATOR OptArrayDecl FormParsRepeatList ;
+FormParsRepeatList ::= FormParsRepeatList FormParsRepeat | /* epsilon */ ;
+FormParsRepeat ::= OP_COMMA Type IDENTIFIKATOR OptArrayDecl ;
+
+
+// deklaracija iskaza
+
+Statement ::= DesignatorStatement OP_SEMICOLN
