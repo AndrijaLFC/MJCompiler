@@ -61,6 +61,7 @@ public class sym{
     public static final int OP_R_SQUARED_PARENTHESES    = 321;
     public static final int OP_L_BRACE_PARENTHESES      = 322;
     public static final int OP_R_BRACE_PARENTHESES      = 323;
+    public static final int OP_DOT                      = 324;
 
 
     // EOF

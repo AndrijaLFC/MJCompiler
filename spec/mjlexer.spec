@@ -78,6 +78,8 @@ import java_cup.runtime.Symbol;
 "]"     { return newSymbol(sym.OP_R_SQUARED_PARENTHESES, yytext()); }
 "{"     { return newSymbol(sym.OP_L_BRACE_PARENTHESES, yytext());   }
 "}"     { return newSymbol(sym.OP_R_BRACE_PARENTHESES, yytext());   }
+"."     { return newSymbol(sym.OP_DOT, yytext());                   }
+
 
 
 [0-9]+                      { return newSymbol(sym.NUM_CONST, new Integer(yytext()));   }
