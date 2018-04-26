@@ -4,7 +4,7 @@
 // Thu Apr 26 20:19:02 CEST 2018
 //----------------------------------------------------
 
-package ba140645d.mjcompiler.parser;
+package ba140645d.mjcompiler;
 
 /** CUP generated class containing symbol constants. */
 public class sym {
