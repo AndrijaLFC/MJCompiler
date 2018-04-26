@@ -1,24 +1,126 @@
 
+package ba140645d.mjcompiler;
+
+import java_cup.runtime.*;
+import java.io.*;
+import org.apache.log4j.*;
+
+parser code {:
+
+	boolean errorDetected = false;
+
+	Logger log = Logger.getLogger(getClass());
 
 
+    // slede redefinisani metodi za prijavu gresaka radi izmene teksta poruke
+
+    public void report_fatal_error(String message, Object info) throws java.lang.Exception {
+      done_parsing();
+      report_error(message, info);
+    }
+
+    public void syntax_error(Symbol cur_token) {
+        report_error("\nSintaksna greska", cur_token);
+    }
+
+    public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exception {
+        report_fatal_error("Fatalna greska, parsiranje se ne moze nastaviti", cur_token);
+    }
+
+    public void report_error(String message, Object info) {
+    	errorDetected = true;
+    	StringBuilder msg = new StringBuilder(message);
+    	if (info instanceof Symbol)
+            msg.append (" na liniji ").append(((Symbol)info).left);
+        log.error(msg.toString());
+    }
+
+    public void report_info(String message, Object info) {
+    	StringBuilder msg = new StringBuilder(message);
+    	if (info instanceof Symbol)
+            msg.append (" na liniji ").append(((Symbol)info).left);
+        log.info(msg.toString());
+    }
+
+:}
+
+scan with {:
+	Symbol s = this.getScanner().next_token();
+	if (s != null && s.value != null)
+		log.info(s.toString() + " " + s.value.toString());
+	return s;
+:}
 
 
-terminal PROGRAM, ;
-non terminal  Program, ;
+/*******************************************
+********    Terminalni simboli    **********
+********************************************/
+
+// kljucne reci
+terminal PROGRAM, BREAK, CLASS, ELSE, IF, NEW, PRINT, READ, RETURN, VOID, DO, WHILE, EXTENDS, CONTINUE, CONST ;
+
+// identifikator
+terminal IDENTIFIKATOR;
+
+// konstante
+terminal NUM_CONST, CHAR_CONST, BOOL_CONST;
+
+// Addop operatori
+terminal OP_ADDITION, OP_SUBTRACTION ;
+
+// mulop operatori
+terminal OP_MULTIPLICATION, OP_DIVISION, OP_MODUO ;
+
+// relop operatori
+terminal OP_EQUALS, OP_NOT_EQUALS, OP_GREATER, OP_GREATER_EQUAL, OP_LESSER, OP_LESSER_EQUAL;
+
+// logic operatori
+terminal OP_LOGIC_AND, OP_LOGIC_OR ;
+
+// operator dodele,inkrement, dekrement, tacka-zarez, zarez, tacka
+terminal OP_EQUAL, OP_INCREMENT, OP_DECREMENT, OP_SEMICOLN, OP_COMMA, OP_DOT;
+
+// operatori zagrade
+terminal OP_L_PARENTHESES, OP_R_PARENTHESES, OP_L_SQUARED_PARENTHESES, OP_R_SQUARED_PARENTHESES, OP_L_BRACE_PARENTHESES, OP_R_BRACE_PARENTHESES;
+
+/*********************************************
+********    Neterminalni simboli    **********
+**********************************************/
 
 
-Program ::= PROGRAM IDENTIFIKATOR ConstVarClassDecl OP_L_BRACE_PARENTHESES MethodDecl OP_R_BRACE_PARENTHESES ;
+non terminal Program, ConstVarClassDeclList, ConstDecl, ConstDeclRepeatList, ConstDeclRepeat, NumCharBoolConst ;
+non terminal VarDecl, VarDeclList, VarDeclRepeatList, VarDeclRepeat, OptArrayDecl, Type, StatementList;
+non terminal ClassDecl, OptExtends, OptMethodDeclList ;
+non terminal MethodDeclList, MethodDecl, ReturnType, OptFormPars ;
+non terminal FormPars, FormParsRepeatList, FormParsRepeat ;
 
-ConstVarClassDecl ::= ConstDecl
-                    | VarDecl
-                    | ClassDecl
+non terminal Statement, OptElseStatement, DesignatorStatement, OptActPars, ActPars, ActParsRepeatList, ActParsRepeat ;
+non terminal Condition, ConditionRepeatList, ConditionRepeat, CondTerm, CondFactRepeatList;
+non terminal CondFact, OptRelopExpr, Expr, OptMinus, AddopTermList, AddopTerm, Term, CondFactRepeat;
+non terminal MulopFactorList, MulopFactor, Factor, Designator, DesignatorRepeatList, DesignatorRepeat;
+non terminal Relop, Addop, Mulop;
+
+non terminal OptExpr, OptPrintNumConst,OptParenthesesActPars, OptArrExpr ;
+
+
+/*******************************************
+********    Gramatika jezika    ************
+********************************************/
+
+
+precedence left ELSE ;
+Program ::= PROGRAM IDENTIFIKATOR ConstVarClassDeclList OP_L_BRACE_PARENTHESES MethodDeclList OP_R_BRACE_PARENTHESES ;
+
+ConstVarClassDeclList ::= ConstVarClassDeclList ConstDecl
+                    | ConstVarClassDeclList VarDecl
+                    | ConstVarClassDeclList ClassDecl
                     | /* epsilon */ ;
 
 // deklaracija konstanti
 ConstDecl ::= CONST Type IDENTIFIKATOR OP_EQUAL NumCharBoolConst ConstDeclRepeatList  OP_SEMICOLN  ;
 
 ConstDeclRepeatList ::= ConstDeclRepeatList ConstDeclRepeat | /* epsilon */ ;
-ConstDeclRepeat ::= OP_COMMA IDENTIFIKATOR OP_EQUAL NumCharBoolConst | /* epsilon*/ ;
+ConstDeclRepeat ::= OP_COMMA IDENTIFIKATOR OP_EQUAL NumCharBoolConst;
 
 NumCharBoolConst ::= NUM_CONST
                     | CHAR_CONST
@@ -27,13 +129,13 @@ NumCharBoolConst ::= NUM_CONST
 
 
 // deklaracija promenljivih
-VarDecl ::= Type IDENTIFIKATOR VarDeclRepeatList OP_SEMICOLN  ;
+VarDecl ::= Type IDENTIFIKATOR OptArrayDecl VarDeclRepeatList OP_SEMICOLN  ;
 VarDeclList ::= VarDeclList VarDecl | /* epsilon */ ;
 VarDeclRepeatList ::= VarDeclRepeatList VarDeclRepeat | /* epsilon */ ;
-VarDeclRepeat ::= OP_COMMA IDENTIFIKATOR  OptArrayDecl | /* epsilon */ ;
+VarDeclRepeat ::= OP_COMMA IDENTIFIKATOR  OptArrayDecl ;
 
 
-OptArrayDecl ::= OP_L_SQUARED_PARENTHESES OP_R_SQUARED_PARANTHESES  | /* epsilon */ ;
+OptArrayDecl ::= OP_L_SQUARED_PARENTHESES OP_R_SQUARED_PARENTHESES  | /* epsilon */ ;
 
 Type ::= IDENTIFIKATOR ;
 
@@ -42,18 +144,20 @@ Type ::= IDENTIFIKATOR ;
 
 ClassDecl ::= CLASS IDENTIFIKATOR OptExtends OP_L_BRACE_PARENTHESES VarDeclList OptMethodDeclList OP_R_BRACE_PARENTHESES ;
 
-OptExtends ::= EXTENDS Type ;
-OptMethodDeclList ::= MethodDeclList | /* epsilon */ ;
+OptExtends ::= EXTENDS Type | /* epsilon*/ ;
+OptMethodDeclList ::= OP_L_BRACE_PARENTHESES MethodDeclList OP_R_BRACE_PARENTHESES | /* epsilon */ ;
 
 
 
 // deklaracija metoda
-MethodDeclList ::= MethodDeclList | MethodDecl | /* epsilon */ ;
+MethodDeclList ::= MethodDeclList  MethodDecl | /* epsilon */ ;
 
 MethodDecl ::= ReturnType IDENTIFIKATOR  OP_L_PARENTHESES OptFormPars OP_R_PARENTHESES VarDeclList OP_L_BRACE_PARENTHESES StatementList OP_R_BRACE_PARENTHESES  ;
 ReturnType ::= Type | VOID ;
 
 OptFormPars ::= FormPars |  /* epsilon */;
+StatementList ::= StatementList Statement | /*epsilon*/ ;
+
 
 // formalni parametri
 FormPars ::= Type IDENTIFIKATOR OptArrayDecl FormParsRepeatList ;
@@ -64,7 +168,8 @@ FormParsRepeat ::= OP_COMMA Type IDENTIFIKATOR OptArrayDecl ;
 // deklaracija iskaza
 
 Statement ::= DesignatorStatement OP_SEMICOLN
-            | IF OP_L_PARENTHESES Condition OP_R_PARENTHESES Statement OptElseStatement
+            | IF OP_L_PARENTHESES Condition OP_R_PARENTHESES Statement ELSE Statement
+            | IF OP_L_PARENTHESES Condition OP_R_PARENTHESES Statement
             | DO Statement WHILE OP_L_PARENTHESES Condition OP_R_PARENTHESES OP_SEMICOLN
             | BREAK OP_SEMICOLN
             | CONTINUE OP_SEMICOLN
@@ -74,16 +179,20 @@ Statement ::= DesignatorStatement OP_SEMICOLN
             | OP_L_BRACE_PARENTHESES StatementList OP_R_BRACE_PARENTHESES
             ;
 
+OptPrintNumConst ::= OP_COMMA NUM_CONST | /*epsilon*/ ;
+OptExpr ::= Expr | /*epsilon*/ ;
+
 OptElseStatement ::= ELSE Statement | /* epsilon */ ;
 
 DesignatorStatement ::= Designator OP_EQUAL Expr
                         | Designator OP_L_PARENTHESES OptActPars OP_R_PARENTHESES
-                        | OP_INCREMENT
-                        | OP_DECREMENT
+                        | Designator OP_INCREMENT
+                        | Designator OP_DECREMENT
                         ;
 
 OptActPars ::= ActPars | /* epsilon */ ;
-ActPars ::= Expr | ActParsRepeatList ;
+
+ActPars ::= Expr ActParsRepeatList ;
 ActParsRepeatList ::= ActParsRepeatList ActParsRepeat | /* epsilon */ ;
 ActParsRepeat ::= OP_COMMA Expr ;
 
@@ -95,7 +204,7 @@ ConditionRepeat ::= OP_LOGIC_OR CondTerm ;
 
 CondTerm ::= CondFact CondFactRepeatList;
 CondFactRepeatList ::= CondFactRepeatList CondFactRepeat | /* epsilon */ ;
-CondFactRepeat ::= CondFact ;
+CondFactRepeat ::= OP_LOGIC_AND CondFact ;
 
 CondFact ::= Expr OptRelopExpr;
 OptRelopExpr ::= Relop Expr | /* epsilon */ ;
@@ -121,7 +230,13 @@ Factor ::=    Designator OptParenthesesActPars
             | OP_L_PARENTHESES Expr OP_R_PARENTHESES
             ;
 
+OptArrExpr ::= OP_L_SQUARED_PARENTHESES Expr OP_R_SQUARED_PARENTHESES | /*epsilon*/ ;
+
+OptParenthesesActPars ::= OP_L_PARENTHESES OptActPars OP_R_PARENTHESES | /*epsilon*/;
+
 Designator ::= IDENTIFIKATOR DesignatorRepeatList ;
+
+
 
 DesignatorRepeatList ::= DesignatorRepeatList DesignatorRepeat | /* epsilon */ ;
 DesignatorRepeat ::=  OP_DOT IDENTIFIKATOR

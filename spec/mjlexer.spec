@@ -52,6 +52,7 @@ import java_cup.runtime.Symbol;
 "continue"  { return newSymbol(sym.CONTINUE, yytext());                 }
 "true"      { return newSymbol(sym.BOOL_CONST, new Boolean(true));      }
 "false"     { return newSymbol(sym.BOOL_CONST, new Boolean(false));     }
+"const"     { return newSymbol(sym.CONST, yytext());                    }
 
 
 "+"     { return newSymbol(sym.OP_ADDITION, yytext());              }
