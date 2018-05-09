@@ -1,0 +1,354 @@
+
+package ba140645d.mjcompiler.ast;
+
+import java_cup.runtime.*;
+import java.io.*;
+import org.apache.log4j.*;
+
+parser code {:
+
+	boolean errorDetected = false;
+
+	Logger log = Logger.getLogger(getClass());
+
+
+    // slede redefinisani metodi za prijavu gresaka radi izmene teksta poruke
+
+    public void report_fatal_error(String message, Object info) throws java.lang.Exception {
+      done_parsing();
+      report_error(message, info);
+    }
+
+    public void syntax_error(Symbol cur_token) {
+        report_error("\nSintaksna greska", cur_token);
+    }
+
+    public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exception {
+        report_fatal_error("Fatalna greska, parsiranje se ne moze nastaviti", cur_token);
+    }
+
+    public void report_error(String message, Object info) {
+    	errorDetected = true;
+    	StringBuilder msg = new StringBuilder(message);
+    	if (info instanceof Symbol)
+            msg.append (" na liniji ").append(((Symbol)info).left);
+        log.error(msg.toString());
+    }
+
+    public void report_info(String message, Object info) {
+    	StringBuilder msg = new StringBuilder(message);
+    	if (info instanceof Symbol)
+            msg.append (" na liniji ").append(((Symbol)info).left);
+        log.info(msg.toString());
+    }
+
+:}
+
+scan with {:
+	Symbol s = this.getScanner().next_token();
+	if (s != null && s.value != null)
+		log.info(s.toString() + " " + s.value.toString());
+	return s;
+:}
+
+
+/*******************************************
+********    Terminalni simboli    **********
+********************************************/
+
+// kljucne reci
+terminal PROGRAM, BREAK, CLASS, ELSE, IF, NEW, PRINT, READ, RETURN, VOID, DO, WHILE, EXTENDS, CONTINUE, CONST ;
+
+// identifikator
+terminal IDENTIFIKATOR;
+
+// konstante
+terminal NUM_CONST, CHAR_CONST, BOOL_CONST;
+
+// Addop operatori
+terminal OP_ADDITION, OP_SUBTRACTION ;
+
+// mulop operatori
+terminal OP_MULTIPLICATION, OP_DIVISION, OP_MODUO ;
+
+// relop operatori
+terminal OP_EQUALS, OP_NOT_EQUALS, OP_GREATER, OP_GREATER_EQUAL, OP_LESSER, OP_LESSER_EQUAL;
+
+// logic operatori
+terminal OP_LOGIC_AND, OP_LOGIC_OR ;
+
+// operator dodele,inkrement, dekrement, tacka-zarez, zarez, tacka
+terminal OP_EQUAL, OP_INCREMENT, OP_DECREMENT, OP_SEMICOLN, OP_COMMA, OP_DOT;
+
+// operatori zagrade
+terminal OP_L_PARENTHESES, OP_R_PARENTHESES, OP_L_SQUARED_PARENTHESES, OP_R_SQUARED_PARENTHESES, OP_L_BRACE_PARENTHESES, OP_R_BRACE_PARENTHESES;
+
+/*********************************************
+********    Neterminalni simboli    **********
+**********************************************/
+
+
+non terminal Program Program;
+nonterminal ConstVarClassDeclList ConstVarClassDeclList;
+nonterminal ConstDecl ConstDecl;
+nonterminal ConstDeclRepeatList ConstDeclRepeatList;
+nonterminal ConstDeclRepeat ConstDeclRepeat;
+nonterminal NumCharBoolConst NumCharBoolConst;
+non terminal VarDecl VarDecl;
+nonterminal VarDeclList VarDeclList;
+nonterminal VarDeclRepeatList VarDeclRepeatList;
+nonterminal VarDeclRepeat VarDeclRepeat;
+nonterminal OptArrayDecl OptArrayDecl;
+nonterminal Type Type;
+nonterminal StatementList StatementList;
+non terminal ClassDecl ClassDecl;
+nonterminal OptExtends OptExtends;
+nonterminal OptMethodDeclList OptMethodDeclList;
+non terminal MethodDeclList MethodDeclList;
+nonterminal MethodDecl MethodDecl;
+nonterminal ReturnType ReturnType;
+nonterminal OptFormPars OptFormPars;
+non terminal FormPars FormPars;
+nonterminal FormParsRepeatList FormParsRepeatList;
+nonterminal FormParsRepeat FormParsRepeat;
+
+non terminal Statement Statement;
+nonterminal OptElseStatement OptElseStatement;
+nonterminal DesignatorStatement DesignatorStatement;
+nonterminal OptActPars OptActPars;
+nonterminal ActPars ActPars;
+nonterminal ActParsRepeatList ActParsRepeatList;
+nonterminal ActParsRepeat ActParsRepeat;
+non terminal Condition Condition;
+nonterminal ConditionRepeatList ConditionRepeatList;
+nonterminal ConditionRepeat ConditionRepeat;
+nonterminal CondTerm CondTerm;
+nonterminal CondFactRepeatList CondFactRepeatList;
+non terminal CondFact CondFact;
+nonterminal OptRelopExpr OptRelopExpr;
+nonterminal Expr Expr;
+nonterminal OptMinus OptMinus;
+nonterminal AddopTermList AddopTermList;
+nonterminal AddopTerm AddopTerm;
+nonterminal Term Term;
+nonterminal CondFactRepeat CondFactRepeat;
+non terminal MulopFactorList MulopFactorList;
+nonterminal MulopFactor MulopFactor;
+nonterminal Factor Factor;
+nonterminal Designator Designator;
+nonterminal DesignatorRepeatList DesignatorRepeatList;
+nonterminal DesignatorRepeat DesignatorRepeat;
+non terminal Relop Relop;
+nonterminal Addop Addop;
+nonterminal Mulop Mulop;
+non terminal ProgramName ProgramName;
+nonterminal ClassName ClassName;
+
+non terminal OptExpr OptExpr;
+nonterminal OptPrintNumConst OptPrintNumConst;
+nonterminal OptParenthesesActPars OptParenthesesActPars;
+nonterminal OptArrExpr OptArrExpr;
+nonterminal ConstDefinition ConstDefinition;
+non terminal VarDeclDefinition VarDeclDefinition;
+non terminal MethodName MethodName;
+non terminal FormParDecl FormParDecl;
+non terminal ConstValue ConstValue;
+non terminal DoWhileBegin DoWhileBegin;
+non terminal DoWhileEnd DoWhileEnd;
+
+/*******************************************
+********    Gramatika jezika    ************
+********************************************/
+
+
+precedence left ELSE ;
+
+Program ::= (Program) PROGRAM ProgramName:programName ConstVarClassDeclList:C1 OP_L_BRACE_PARENTHESES MethodDeclList:M2 OP_R_BRACE_PARENTHESES {: RESULT=new Program(programName, C1, M2); RESULT.setLine(programNameleft); :} ;
+
+ProgramName ::= IDENTIFIKATOR:programName {: RESULT=new ProgramNameDerived1(); :};
+
+ConstVarClassDeclList ::= (ConstVarClassDeclListConstDecl) ConstVarClassDeclList:C1 ConstDecl:C2 {: RESULT=new ConstVarClassDeclListConstDecl(C1, C2); RESULT.setLine(C1left); :}
+                    |     (ConstVarClassDeclListVarDecl) ConstVarClassDeclList:C1 VarDecl:V2 {: RESULT=new ConstVarClassDeclListVarDecl(C1, V2); RESULT.setLine(C1left); :}
+                    |     (ConstVarClassDeclListClassDecl) ConstVarClassDeclList:C1 ClassDecl:C2 {: RESULT=new ConstVarClassDeclListClassDecl(C1, C2); RESULT.setLine(C1left); :}
+                    |     (ConstVarClassDeclListEpsilon) {: RESULT=new ConstVarClassDeclListEpsilon(); :} /* epsilon */ ;
+
+
+// deklaracija konstanti
+ConstDecl ::= (ConstDecl) CONST Type:T1 ConstDefinition:C2  ConstDeclRepeatList:C3  OP_SEMICOLN {: RESULT=new ConstDecl(T1, C2, C3); RESULT.setLine(T1left); :}  ;
+
+ConstDefinition ::= (ConstDefinition) IDENTIFIKATOR:constName OP_EQUAL NumCharBoolConst:constValue {: RESULT=new ConstDefinition(constValue); RESULT.setLine(constValueleft); :} ;
+
+ConstDeclRepeatList ::= (ConstDeclRepeatList) ConstDeclRepeatList:C1 ConstDeclRepeat:C2 {: RESULT=new ConstDeclRepeatList(C1, C2); RESULT.setLine(C1left); :} | {: RESULT=new ConstDeclRepeatListDerived1(); :} /* epsilon */ ;
+ConstDeclRepeat ::= (ConstDeclRepeat) OP_COMMA ConstDefinition:C1 {: RESULT=new ConstDeclRepeat(C1); RESULT.setLine(C1left); :};
+
+NumCharBoolConst ::= ConstValue:C1 {: RESULT=new NumCharBoolConstDerived1(C1); RESULT.setLine(C1left); :};
+
+ConstValue ::=      (NumConst)  NUM_CONST:numConst {: RESULT=new NumConst(); :}
+                |   (CharConst) CHAR_CONST:charConst {: RESULT=new CharConst(); :}
+                |   (BoolConst) BOOL_CONST:boolConst {: RESULT=new BoolConst(); :}
+                ;
+
+// deklaracija promenljivih
+VarDecl ::= Type:T1 VarDeclDefinition:V2 VarDeclRepeatList:V3 OP_SEMICOLN {: RESULT=new VarDeclDerived1(T1, V2, V3); RESULT.setLine(T1left); :}  ;
+
+VarDeclDefinition ::= IDENTIFIKATOR:varName OptArrayDecl:isArray {: RESULT=new VarDeclDefinitionDerived1(isArray); RESULT.setLine(isArrayleft); :};
+
+VarDeclList ::= (VarDeclList) VarDeclList:V1 VarDecl:V2 {: RESULT=new VarDeclList(V1, V2); RESULT.setLine(V1left); :} | (VarDeclListEpsilon) {: RESULT=new VarDeclListEpsilon(); :} /* epsilon */ ;
+VarDeclRepeatList ::= (VarDeclRepeatList) VarDeclRepeatList:V1 VarDeclRepeat:V2 {: RESULT=new VarDeclRepeatList(V1, V2); RESULT.setLine(V1left); :} | (VarDeclRepeatListEpsilon) {: RESULT=new VarDeclRepeatListEpsilon(); :} /* epsilon */ ;
+VarDeclRepeat ::= (VarDeclRepeat) OP_COMMA VarDeclDefinition:V1 {: RESULT=new VarDeclRepeat(V1); RESULT.setLine(V1left); :};
+
+OptArrayDecl ::= (OptArrayDecl) OP_L_SQUARED_PARENTHESES OP_R_SQUARED_PARENTHESES {: RESULT=new OptArrayDecl(); :}  | (OptArrayDeclEpsilon) {: RESULT=new OptArrayDeclEpsilon(); :}/* epsilon */ ;
+
+Type ::= (Type) IDENTIFIKATOR:typeName {: RESULT=new Type(); :} ;
+
+
+// deklaracija klase
+ClassDecl ::= (ClassDecl) CLASS ClassName:className OptExtends:O1 OP_L_BRACE_PARENTHESES VarDeclList:V2 OptMethodDeclList:O3 OP_R_BRACE_PARENTHESES {: RESULT=new ClassDecl(className, O1, V2, O3); RESULT.setLine(classNameleft); :} ;
+ClassName ::= (ClassName) IDENTIFIKATOR:className {: RESULT=new ClassName(); :};
+
+
+OptExtends ::= (OptExtends) EXTENDS Type:typeName {: RESULT=new OptExtends(typeName); RESULT.setLine(typeNameleft); :} | (OptExtendsEpsilon) {: RESULT=new OptExtendsEpsilon(); :} /* epsilon*/;
+
+// deklaracija metoda
+MethodDeclList ::= (MethodDeclList) MethodDeclList:M1  MethodDecl:M2 {: RESULT=new MethodDeclList(M1, M2); RESULT.setLine(M1left); :} | (MethodDeclListEpsilon) {: RESULT=new MethodDeclListEpsilon(); :} /* epsilon */ ;
+
+OptMethodDeclList ::= (OptMethodDeclList) OP_L_BRACE_PARENTHESES MethodDeclList:M1 OP_R_BRACE_PARENTHESES {: RESULT=new OptMethodDeclList(M1); RESULT.setLine(M1left); :} | (OptMethodDeclListEpsilon) {: RESULT=new OptMethodDeclListEpsilon(); :} /* epsilon */ ;
+
+
+MethodDecl ::= (MethodDecl) ReturnType:R1 MethodName:M2  OP_L_PARENTHESES OptFormPars:O3 OP_R_PARENTHESES VarDeclList:V4 OP_L_BRACE_PARENTHESES StatementList:S5 OP_R_BRACE_PARENTHESES {: RESULT=new MethodDecl(R1, M2, O3, V4, S5); RESULT.setLine(R1left); :};
+
+MethodName ::= (MethodName) IDENTIFIKATOR:methodName {: RESULT=new MethodName(); :} ;
+
+ReturnType ::= (ReturnType) Type:T1 {: RESULT=new ReturnType(T1); RESULT.setLine(T1left); :} | (ReturnTypeVoid) VOID {: RESULT=new ReturnTypeVoid(); :};
+
+OptFormPars ::= (OptFormPars) FormPars:F1 {: RESULT=new OptFormPars(F1); RESULT.setLine(F1left); :} |  (OptFormParsEpsilon) {: RESULT=new OptFormParsEpsilon(); :} /* epsilon */;
+
+
+
+
+// formalni parametri
+FormPars ::= (FormPars) FormParDecl:F1 FormParsRepeatList:F2 {: RESULT=new FormPars(F1, F2); RESULT.setLine(F1left); :} ;
+FormParDecl ::= (FormParDecl) Type:formParType IDENTIFIKATOR:formParName OptArrayDecl:O1 {: RESULT=new FormParDecl(formParType, O1); RESULT.setLine(formParTypeleft); :};
+
+FormParsRepeatList ::= (FormParsRepeatList) FormParsRepeatList:F1 FormParsRepeat:F2 {: RESULT=new FormParsRepeatList(F1, F2); RESULT.setLine(F1left); :} | (FormParsRepeatListEpsilon   ) {: RESULT=new FormParsRepeatListEpsilon(); :}/* epsilon */ ;
+FormParsRepeat ::= (FormParsRepeat) OP_COMMA FormParDecl:F1 {: RESULT=new FormParsRepeat(F1); RESULT.setLine(F1left); :} ;
+
+
+// deklaracija iskaza
+
+Statement ::= (StatementDesignator) DesignatorStatement:D1 OP_SEMICOLN {: RESULT=new StatementDesignator(D1); RESULT.setLine(D1left); :}
+            | (IfElseStatement)     IF OP_L_PARENTHESES Condition:C1 OP_R_PARENTHESES Statement:S2 ELSE Statement:S3 {: RESULT=new IfElseStatement(C1, S2, S3); RESULT.setLine(C1left); :}
+            | (IfStatement)         IF OP_L_PARENTHESES Condition:C1 OP_R_PARENTHESES Statement:S2 {: RESULT=new IfStatement(C1, S2); RESULT.setLine(C1left); :}
+            | (DoWhileStatement)    DoWhileBegin:D1 Statement:S2 DoWhileEnd:D3 OP_L_PARENTHESES Condition:C4 OP_R_PARENTHESES OP_SEMICOLN {: RESULT=new DoWhileStatement(D1, S2, D3, C4); RESULT.setLine(D1left); :}
+            | (BreakStatement)      BREAK OP_SEMICOLN {: RESULT=new BreakStatement(); :}
+            | (ContinueStatement)   CONTINUE OP_SEMICOLN {: RESULT=new ContinueStatement(); :}
+            | (ReturnStatement)     RETURN OptExpr:O1 OP_SEMICOLN {: RESULT=new ReturnStatement(O1); RESULT.setLine(O1left); :}
+            | (ReadStatement)       READ OP_L_PARENTHESES Designator:D1 OP_R_PARENTHESES OP_SEMICOLN {: RESULT=new ReadStatement(D1); RESULT.setLine(D1left); :}
+            | (PrintStatement)      PRINT OP_L_PARENTHESES Expr:E1 OptPrintNumConst:O2 OP_R_PARENTHESES OP_SEMICOLN {: RESULT=new PrintStatement(E1, O2); RESULT.setLine(E1left); :}
+            | (EnclosedStatement)   OP_L_BRACE_PARENTHESES StatementList:S1 OP_R_BRACE_PARENTHESES {: RESULT=new EnclosedStatement(S1); RESULT.setLine(S1left); :}
+            ;
+
+StatementList ::= (StatementList) StatementList:S1 Statement:S2 {: RESULT=new StatementList(S1, S2); RESULT.setLine(S1left); :} | (StatementListEpsilon) {: RESULT=new StatementListEpsilon(); :}/*epsilon*/ ;
+
+
+DoWhileBegin ::= DO {: RESULT=new DoWhileBeginDerived1(); :} ;
+DoWhileEnd ::= WHILE {: RESULT=new DoWhileEndDerived1(); :} ;
+
+OptPrintNumConst ::= (OptPrintNumConst) OP_COMMA NUM_CONST {: RESULT=new OptPrintNumConst(); :} | (OptPrintNumConstEpsilon) {: RESULT=new OptPrintNumConstEpsilon(); :} /*epsilon*/ ;
+
+OptExpr ::= (OptExpr) Expr:E1 {: RESULT=new OptExpr(E1); RESULT.setLine(E1left); :} | (OptExprEpsilon) {: RESULT=new OptExprEpsilon(); :} /*epsilon*/ ;
+
+OptElseStatement ::= (OptElseStatement) ELSE Statement:S1 {: RESULT=new OptElseStatement(S1); RESULT.setLine(S1left); :} | (OptElseStatementEpsilon) {: RESULT=new OptElseStatementEpsilon(); :}/* epsilon */ ;
+
+DesignatorStatement ::=     (DesignatorStatementAssign)     Designator:D1 OP_EQUAL Expr:E2 {: RESULT=new DesignatorStatementAssign(D1, E2); RESULT.setLine(D1left); :}
+                        |   (DesignatorStatementActualPars) Designator:D1 OP_L_PARENTHESES OptActPars:O2 OP_R_PARENTHESES {: RESULT=new DesignatorStatementActualPars(D1, O2); RESULT.setLine(D1left); :}
+                        |   (DesignatorStatementIncrement)  Designator:D1 OP_INCREMENT {: RESULT=new DesignatorStatementIncrement(D1); RESULT.setLine(D1left); :}
+                        |   (DesignatorStatementDecrement)  Designator:D1 OP_DECREMENT {: RESULT=new DesignatorStatementDecrement(D1); RESULT.setLine(D1left); :}
+                        ;
+
+OptActPars ::= (OptActPars) ActPars:A1 {: RESULT=new OptActPars(A1); RESULT.setLine(A1left); :} | (OptActParsEpsilon) {: RESULT=new OptActParsEpsilon(); :} /* epsilon */ ;
+
+ActPars ::= (ActPars) Expr:E1 ActParsRepeatList:A2 {: RESULT=new ActPars(E1, A2); RESULT.setLine(E1left); :} ;
+
+ActParsRepeatList ::= (ActParsRepeatList) ActParsRepeatList:A1 ActParsRepeat:A2 {: RESULT=new ActParsRepeatList(A1, A2); RESULT.setLine(A1left); :} | (ActParsRepeatListEpsilon) {: RESULT=new ActParsRepeatListEpsilon(); :} /* epsilon */ ;
+
+ActParsRepeat ::= (ActParsRepeat) OP_COMMA Expr:E1 {: RESULT=new ActParsRepeat(E1); RESULT.setLine(E1left); :} ;
+
+// gramatika uslova
+
+Condition ::= (Condition) CondTerm:C1 ConditionRepeatList:C2 {: RESULT=new Condition(C1, C2); RESULT.setLine(C1left); :} ;
+
+ConditionRepeatList ::=     (ConditionRepeatList) ConditionRepeatList:C1 ConditionRepeat:C2 {: RESULT=new ConditionRepeatList(C1, C2); RESULT.setLine(C1left); :}
+                        |   (ConditionRepeatListEpsilon) {: RESULT=new ConditionRepeatListEpsilon(); :} /* epsilon */
+                        ;
+ConditionRepeat ::= (ConditionRepeat) OP_LOGIC_OR CondTerm:C1 {: RESULT=new ConditionRepeat(C1); RESULT.setLine(C1left); :} ;
+
+CondTerm ::= (CondTerm) CondFact:C1 CondFactRepeatList:C2 {: RESULT=new CondTerm(C1, C2); RESULT.setLine(C1left); :};
+
+CondFactRepeatList ::=      (CondFactRepeatList) CondFactRepeatList:C1 CondFactRepeat:C2 {: RESULT=new CondFactRepeatList(C1, C2); RESULT.setLine(C1left); :}
+                        |   (CondFactRepeatListEpsilon) {: RESULT=new CondFactRepeatListEpsilon(); :} /* epsilon */
+                        ;
+
+CondFactRepeat ::= (CondFactRepeat) OP_LOGIC_AND CondFact:C1 {: RESULT=new CondFactRepeat(C1); RESULT.setLine(C1left); :} ;
+
+CondFact ::= (CondFact) Expr:E1 OptRelopExpr:O2 {: RESULT=new CondFact(E1, O2); RESULT.setLine(E1left); :};
+OptRelopExpr ::= (OptRelopExpr) Relop:R1 Expr:E2 {: RESULT=new OptRelopExpr(R1, E2); RESULT.setLine(R1left); :} | (OptRelopExprEpsilon) {: RESULT=new OptRelopExprEpsilon(); :} /* epsilon */ ;
+
+
+Expr ::= (Expr) OptMinus:O1 Term:T2 AddopTermList:A3 {: RESULT=new Expr(O1, T2, A3); RESULT.setLine(O1left); :} ;
+OptMinus ::= (OptMinus) OP_SUBTRACTION {: RESULT=new OptMinus(); :} | (OptMinusEpsilon) {: RESULT=new OptMinusEpsilon(); :} /* epsilon */ ;
+
+AddopTermList ::= (AddopTermList) AddopTermList:A1 AddopTerm:A2 {: RESULT=new AddopTermList(A1, A2); RESULT.setLine(A1left); :} | (AddopTermListEpsilon) {: RESULT=new AddopTermListEpsilon(); :} /*epsilon*/;
+AddopTerm ::= (AddopTerm) Addop:A1 Term:T2 {: RESULT=new AddopTerm(A1, T2); RESULT.setLine(A1left); :} ;
+
+
+Term ::= Factor:F1 MulopFactorList:M2 {: RESULT=new TermDerived1(F1, M2); RESULT.setLine(F1left); :} ;
+
+MulopFactorList ::= MulopFactorList:M1 MulopFactor:M2 {: RESULT=new MulopFactorListDerived1(M1, M2); RESULT.setLine(M1left); :} | {: RESULT=new MulopFactorListDerived2(); :} /* epsilon */ ;
+MulopFactor ::= Mulop:M1 Factor:F2 {: RESULT=new MulopFactorDerived1(M1, F2); RESULT.setLine(M1left); :} ;
+
+Factor ::=      (FactorFuncCal)   Designator:D1 OptParenthesesActPars:O2 {: RESULT=new FactorFuncCal(D1, O2); RESULT.setLine(D1left); :}
+            |   (FactorConst)     ConstValue:C1 {: RESULT=new FactorConst(C1); RESULT.setLine(C1left); :}
+            |   (FactorNew)       NEW Type:T1 OptArrExpr:O2 {: RESULT=new FactorNew(T1, O2); RESULT.setLine(T1left); :}
+            |   (FactorExpr)      OP_L_PARENTHESES Expr:E1 OP_R_PARENTHESES {: RESULT=new FactorExpr(E1); RESULT.setLine(E1left); :}
+            ;
+
+OptArrExpr ::= (OptArrExpr) OP_L_SQUARED_PARENTHESES Expr:E1 OP_R_SQUARED_PARENTHESES {: RESULT=new OptArrExpr(E1); RESULT.setLine(E1left); :}
+             | (OptArrExprEpsilon) {: RESULT=new OptArrExprEpsilon(); :} /*epsilon*/
+             ;
+
+OptParenthesesActPars ::= (OptParenthesesActPars) OP_L_PARENTHESES OptActPars:O1 OP_R_PARENTHESES {: RESULT=new OptParenthesesActPars(O1); RESULT.setLine(O1left); :}
+                        | (OptParenthesesActParsEpsilon) {: RESULT=new OptParenthesesActParsEpsilon(); :} /*epsilon*/
+                        ;
+
+Designator ::= (Designator) IDENTIFIKATOR:designatorName DesignatorRepeatList:D1 {: RESULT=new Designator(D1); RESULT.setLine(D1left); :} ;
+
+
+
+DesignatorRepeatList ::= (DesignatorRepeatList) DesignatorRepeatList:D1 DesignatorRepeat:D2 {: RESULT=new DesignatorRepeatList(D1, D2); RESULT.setLine(D1left); :}
+                       | (DesignatorRepeatListEpsilon) {: RESULT=new DesignatorRepeatListEpsilon(); :} /* epsilon */
+                       ;
+
+DesignatorRepeat ::=  (DesignatorRepeatField) OP_DOT IDENTIFIKATOR:fieldName {: RESULT=new DesignatorRepeatField(); :}
+                    | (DesignatorRepeatExpr)  OP_L_SQUARED_PARENTHESES Expr:E1 OP_R_SQUARED_PARENTHESES {: RESULT=new DesignatorRepeatExpr(E1); RESULT.setLine(E1left); :}
+                    ;
+
+Relop ::= (RelopEquals)         OP_EQUALS {: RESULT=new RelopEquals(); :}
+        | (RelopNotEquals)      OP_NOT_EQUALS {: RESULT=new RelopNotEquals(); :}
+        | (RelopGreater)        OP_GREATER {: RESULT=new RelopGreater(); :}
+        | (RelopGreaterEqual)   OP_GREATER_EQUAL {: RESULT=new RelopGreaterEqual(); :}
+        | (RelopLesser)         OP_LESSER {: RESULT=new RelopLesser(); :}
+        | (RelopLesserEqual)    OP_LESSER_EQUAL {: RESULT=new RelopLesserEqual(); :}
+        ;
+
+Addop ::= (AddopAddition) OP_ADDITION {: RESULT=new AddopAddition(); :} | (AddopSubtraction) OP_SUBTRACTION {: RESULT=new AddopSubtraction(); :} ;
+
+Mulop ::= (MulopMultiplication) OP_MULTIPLICATION {: RESULT=new MulopMultiplication(); :}
+        | (MulopDivision)       OP_DIVISION {: RESULT=new MulopDivision(); :}
+        | (MulopModuo)          OP_MODUO {: RESULT=new MulopModuo(); :}
+        ;
+
+
+
+
+

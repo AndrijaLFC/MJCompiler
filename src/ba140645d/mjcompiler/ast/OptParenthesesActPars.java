@@ -1,0 +1,76 @@
+// generated with ast extension for cup
+// version 0.8
+// 9/4/2018 20:42:54
+
+
+package ba140645d.mjcompiler.ast;
+
+public class OptParenthesesActPars implements SyntaxNode {
+
+    private SyntaxNode parent;
+    private int line;
+    private OptActPars OptActPars;
+
+    public OptParenthesesActPars (OptActPars OptActPars) {
+        this.OptActPars=OptActPars;
+        if(OptActPars!=null) OptActPars.setParent(this);
+    }
+
+    public OptActPars getOptActPars() {
+        return OptActPars;
+    }
+
+    public void setOptActPars(OptActPars OptActPars) {
+        this.OptActPars=OptActPars;
+    }
+
+    public SyntaxNode getParent() {
+        return parent;
+    }
+
+    public void setParent(SyntaxNode parent) {
+        this.parent=parent;
+    }
+
+    public int getLine() {
+        return line;
+    }
+
+    public void setLine(int line) {
+        this.line=line;
+    }
+
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
+
+    public void childrenAccept(Visitor visitor) {
+        if(OptActPars!=null) OptActPars.accept(visitor);
+    }
+
+    public void traverseTopDown(Visitor visitor) {
+        accept(visitor);
+        if(OptActPars!=null) OptActPars.traverseTopDown(visitor);
+    }
+
+    public void traverseBottomUp(Visitor visitor) {
+        if(OptActPars!=null) OptActPars.traverseBottomUp(visitor);
+        accept(visitor);
+    }
+
+    public String toString(String tab) {
+        StringBuffer buffer=new StringBuffer();
+        buffer.append(tab);
+        buffer.append("OptParenthesesActPars(\n");
+
+        if(OptActPars!=null)
+            buffer.append(OptActPars.toString("  "+tab));
+        else
+            buffer.append(tab+"  null");
+        buffer.append("\n");
+
+        buffer.append(tab);
+        buffer.append(") [OptParenthesesActPars]");
+        return buffer.toString();
+    }
+}
