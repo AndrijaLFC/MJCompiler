@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/4/2018 20:42:52
+// 9/4/2018 23:56:11
 
 
 package ba140645d.mjcompiler.ast;
@@ -9,19 +9,29 @@ public class ConstDefinition implements SyntaxNode {
 
     private SyntaxNode parent;
     private int line;
-    private NumCharBoolConst NumCharBoolConst;
+    private String constName;
+    private ConstValue ConstValue;
 
-    public ConstDefinition (NumCharBoolConst NumCharBoolConst) {
-        this.NumCharBoolConst=NumCharBoolConst;
-        if(NumCharBoolConst!=null) NumCharBoolConst.setParent(this);
+    public ConstDefinition (String constName, ConstValue ConstValue) {
+        this.constName=constName;
+        this.ConstValue=ConstValue;
+        if(ConstValue!=null) ConstValue.setParent(this);
     }
 
-    public NumCharBoolConst getNumCharBoolConst() {
-        return NumCharBoolConst;
+    public String getConstName() {
+        return constName;
     }
 
-    public void setNumCharBoolConst(NumCharBoolConst NumCharBoolConst) {
-        this.NumCharBoolConst=NumCharBoolConst;
+    public void setConstName(String constName) {
+        this.constName=constName;
+    }
+
+    public ConstValue getConstValue() {
+        return ConstValue;
+    }
+
+    public void setConstValue(ConstValue ConstValue) {
+        this.ConstValue=ConstValue;
     }
 
     public SyntaxNode getParent() {
@@ -45,16 +55,16 @@ public class ConstDefinition implements SyntaxNode {
     }
 
     public void childrenAccept(Visitor visitor) {
-        if(NumCharBoolConst!=null) NumCharBoolConst.accept(visitor);
+        if(ConstValue!=null) ConstValue.accept(visitor);
     }
 
     public void traverseTopDown(Visitor visitor) {
         accept(visitor);
-        if(NumCharBoolConst!=null) NumCharBoolConst.traverseTopDown(visitor);
+        if(ConstValue!=null) ConstValue.traverseTopDown(visitor);
     }
 
     public void traverseBottomUp(Visitor visitor) {
-        if(NumCharBoolConst!=null) NumCharBoolConst.traverseBottomUp(visitor);
+        if(ConstValue!=null) ConstValue.traverseBottomUp(visitor);
         accept(visitor);
     }
 
@@ -63,8 +73,11 @@ public class ConstDefinition implements SyntaxNode {
         buffer.append(tab);
         buffer.append("ConstDefinition(\n");
 
-        if(NumCharBoolConst!=null)
-            buffer.append(NumCharBoolConst.toString("  "+tab));
+        buffer.append(" "+tab+constName);
+        buffer.append("\n");
+
+        if(ConstValue!=null)
+            buffer.append(ConstValue.toString("  "+tab));
         else
             buffer.append(tab+"  null");
         buffer.append("\n");

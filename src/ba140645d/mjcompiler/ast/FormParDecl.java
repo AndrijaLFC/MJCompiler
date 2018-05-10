@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/4/2018 20:42:52
+// 9/4/2018 23:56:11
 
 
 package ba140645d.mjcompiler.ast;
@@ -10,11 +10,13 @@ public class FormParDecl implements SyntaxNode {
     private SyntaxNode parent;
     private int line;
     private Type Type;
+    private String formParName;
     private OptArrayDecl OptArrayDecl;
 
-    public FormParDecl (Type Type, OptArrayDecl OptArrayDecl) {
+    public FormParDecl (Type Type, String formParName, OptArrayDecl OptArrayDecl) {
         this.Type=Type;
         if(Type!=null) Type.setParent(this);
+        this.formParName=formParName;
         this.OptArrayDecl=OptArrayDecl;
         if(OptArrayDecl!=null) OptArrayDecl.setParent(this);
     }
@@ -25,6 +27,14 @@ public class FormParDecl implements SyntaxNode {
 
     public void setType(Type Type) {
         this.Type=Type;
+    }
+
+    public String getFormParName() {
+        return formParName;
+    }
+
+    public void setFormParName(String formParName) {
+        this.formParName=formParName;
     }
 
     public OptArrayDecl getOptArrayDecl() {
@@ -81,6 +91,9 @@ public class FormParDecl implements SyntaxNode {
             buffer.append(Type.toString("  "+tab));
         else
             buffer.append(tab+"  null");
+        buffer.append("\n");
+
+        buffer.append(" "+tab+formParName);
         buffer.append("\n");
 
         if(OptArrayDecl!=null)

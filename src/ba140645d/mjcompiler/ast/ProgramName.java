@@ -1,15 +1,27 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/4/2018 20:42:54
+// 9/4/2018 23:56:11
 
 
 package ba140645d.mjcompiler.ast;
 
-public abstract class ProgramName implements SyntaxNode {
+public class ProgramName implements SyntaxNode {
 
     private SyntaxNode parent;
-
     private int line;
+    private String programName;
+
+    public ProgramName (String programName) {
+        this.programName=programName;
+    }
+
+    public String getProgramName() {
+        return programName;
+    }
+
+    public void setProgramName(String programName) {
+        this.programName=programName;
+    }
 
     public SyntaxNode getParent() {
         return parent;
@@ -27,11 +39,31 @@ public abstract class ProgramName implements SyntaxNode {
         this.line=line;
     }
 
-    public abstract void accept(Visitor visitor);
-    public abstract void childrenAccept(Visitor visitor);
-    public abstract void traverseTopDown(Visitor visitor);
-    public abstract void traverseBottomUp(Visitor visitor);
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
-    public String toString() { return toString(""); }
-    public abstract String toString(String tab);
+    public void childrenAccept(Visitor visitor) {
+    }
+
+    public void traverseTopDown(Visitor visitor) {
+        accept(visitor);
+    }
+
+    public void traverseBottomUp(Visitor visitor) {
+        accept(visitor);
+    }
+
+    public String toString(String tab) {
+        StringBuffer buffer=new StringBuffer();
+        buffer.append(tab);
+        buffer.append("ProgramName(\n");
+
+        buffer.append(" "+tab+programName);
+        buffer.append("\n");
+
+        buffer.append(tab);
+        buffer.append(") [ProgramName]");
+        return buffer.toString();
+    }
 }

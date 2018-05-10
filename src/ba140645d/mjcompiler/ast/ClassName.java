@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/4/2018 20:42:52
+// 9/4/2018 23:56:11
 
 
 package ba140645d.mjcompiler.ast;
@@ -9,7 +9,18 @@ public class ClassName implements SyntaxNode {
 
     private SyntaxNode parent;
     private int line;
-    public ClassName () {
+    private String className;
+
+    public ClassName (String className) {
+        this.className=className;
+    }
+
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className=className;
     }
 
     public SyntaxNode getParent() {
@@ -47,6 +58,9 @@ public class ClassName implements SyntaxNode {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
         buffer.append("ClassName(\n");
+
+        buffer.append(" "+tab+className);
+        buffer.append("\n");
 
         buffer.append(tab);
         buffer.append(") [ClassName]");

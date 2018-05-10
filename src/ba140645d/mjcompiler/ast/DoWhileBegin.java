@@ -1,15 +1,16 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/4/2018 20:42:54
+// 9/4/2018 23:56:12
 
 
 package ba140645d.mjcompiler.ast;
 
-public abstract class DoWhileBegin implements SyntaxNode {
+public class DoWhileBegin implements SyntaxNode {
 
     private SyntaxNode parent;
-
     private int line;
+    public DoWhileBegin () {
+    }
 
     public SyntaxNode getParent() {
         return parent;
@@ -27,11 +28,28 @@ public abstract class DoWhileBegin implements SyntaxNode {
         this.line=line;
     }
 
-    public abstract void accept(Visitor visitor);
-    public abstract void childrenAccept(Visitor visitor);
-    public abstract void traverseTopDown(Visitor visitor);
-    public abstract void traverseBottomUp(Visitor visitor);
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
-    public String toString() { return toString(""); }
-    public abstract String toString(String tab);
+    public void childrenAccept(Visitor visitor) {
+    }
+
+    public void traverseTopDown(Visitor visitor) {
+        accept(visitor);
+    }
+
+    public void traverseBottomUp(Visitor visitor) {
+        accept(visitor);
+    }
+
+    public String toString(String tab) {
+        StringBuffer buffer=new StringBuffer();
+        buffer.append(tab);
+        buffer.append("DoWhileBegin(\n");
+
+        buffer.append(tab);
+        buffer.append(") [DoWhileBegin]");
+        return buffer.toString();
+    }
 }

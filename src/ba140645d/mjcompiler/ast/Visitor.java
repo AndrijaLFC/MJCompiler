@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/4/2018 20:42:54
+// 9/4/2018 23:56:13
 
 
 package ba140645d.mjcompiler.ast;
@@ -9,22 +9,14 @@ public interface Visitor {
 
     public void visit(Mulop Mulop);
     public void visit(Relop Relop);
-    public void visit(DoWhileBegin DoWhileBegin);
-    public void visit(MulopFactorList MulopFactorList);
-    public void visit(VarDeclDefinition VarDeclDefinition);
-    public void visit(MulopFactor MulopFactor);
     public void visit(Addop Addop);
     public void visit(Factor Factor);
-    public void visit(Term Term);
     public void visit(ConstValue ConstValue);
     public void visit(NumCharBoolConst NumCharBoolConst);
-    public void visit(DoWhileEnd DoWhileEnd);
-    public void visit(ProgramName ProgramName);
     public void visit(ConstVarClassDeclList ConstVarClassDeclList);
     public void visit(DesignatorStatement DesignatorStatement);
     public void visit(DesignatorRepeat DesignatorRepeat);
     public void visit(Statement Statement);
-    public void visit(VarDecl VarDecl);
     public void visit(MulopModuo MulopModuo);
     public void visit(MulopDivision MulopDivision);
     public void visit(MulopMultiplication MulopMultiplication);
@@ -49,10 +41,10 @@ public interface Visitor {
     public void visit(FactorNew FactorNew);
     public void visit(FactorConst FactorConst);
     public void visit(FactorFuncCal FactorFuncCal);
-    public void visit(MulopFactorDerived1 MulopFactorDerived1);
-    public void visit(MulopFactorListDerived2 MulopFactorListDerived2);
-    public void visit(MulopFactorListDerived1 MulopFactorListDerived1);
-    public void visit(TermDerived1 TermDerived1);
+    public void visit(MulopFactor MulopFactor);
+    public void visit(MulopFactorListEpsilon MulopFactorListEpsilon);
+    public void visit(MulopFactorList MulopFactorList);
+    public void visit(Term Term);
     public void visit(AddopTerm AddopTerm);
     public void visit(AddopTermListEpsilon AddopTermListEpsilon);
     public void visit(AddopTermList AddopTermList);
@@ -86,8 +78,8 @@ public interface Visitor {
     public void visit(OptExpr OptExpr);
     public void visit(OptPrintNumConstEpsilon OptPrintNumConstEpsilon);
     public void visit(OptPrintNumConst OptPrintNumConst);
-    public void visit(DoWhileEndDerived1 DoWhileEndDerived1);
-    public void visit(DoWhileBeginDerived1 DoWhileBeginDerived1);
+    public void visit(DoWhileEnd DoWhileEnd);
+    public void visit(DoWhileBegin DoWhileBegin);
     public void visit(StatementListEpsilon StatementListEpsilon);
     public void visit(StatementList StatementList);
     public void visit(EnclosedStatement EnclosedStatement);
@@ -127,12 +119,11 @@ public interface Visitor {
     public void visit(VarDeclRepeatList VarDeclRepeatList);
     public void visit(VarDeclListEpsilon VarDeclListEpsilon);
     public void visit(VarDeclList VarDeclList);
-    public void visit(VarDeclDefinitionDerived1 VarDeclDefinitionDerived1);
-    public void visit(VarDeclDerived1 VarDeclDerived1);
+    public void visit(VarDeclDefinition VarDeclDefinition);
+    public void visit(VarDecl VarDecl);
     public void visit(BoolConst BoolConst);
     public void visit(CharConst CharConst);
     public void visit(NumConst NumConst);
-    public void visit(NumCharBoolConstDerived1 NumCharBoolConstDerived1);
     public void visit(ConstDeclRepeat ConstDeclRepeat);
     public void visit(ConstDeclRepeatListDerived1 ConstDeclRepeatListDerived1);
     public void visit(ConstDeclRepeatList ConstDeclRepeatList);
@@ -142,7 +133,7 @@ public interface Visitor {
     public void visit(ConstVarClassDeclListClassDecl ConstVarClassDeclListClassDecl);
     public void visit(ConstVarClassDeclListVarDecl ConstVarClassDeclListVarDecl);
     public void visit(ConstVarClassDeclListConstDecl ConstVarClassDeclListConstDecl);
-    public void visit(ProgramNameDerived1 ProgramNameDerived1);
+    public void visit(ProgramName ProgramName);
     public void visit(Program Program);
 
 }

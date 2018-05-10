@@ -1,13 +1,24 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/4/2018 20:42:54
+// 9/4/2018 23:56:13
 
 
 package ba140645d.mjcompiler.ast;
 
 public class DesignatorRepeatField extends DesignatorRepeat {
 
-    public DesignatorRepeatField () {
+    private String fieldName;
+
+    public DesignatorRepeatField (String fieldName) {
+        this.fieldName=fieldName;
+    }
+
+    public String getFieldName() {
+        return fieldName;
+    }
+
+    public void setFieldName(String fieldName) {
+        this.fieldName=fieldName;
     }
 
     public void accept(Visitor visitor) {
@@ -29,6 +40,9 @@ public class DesignatorRepeatField extends DesignatorRepeat {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
         buffer.append("DesignatorRepeatField(\n");
+
+        buffer.append(" "+tab+fieldName);
+        buffer.append("\n");
 
         buffer.append(tab);
         buffer.append(") [DesignatorRepeatField]");

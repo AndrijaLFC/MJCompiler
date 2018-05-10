@@ -1,13 +1,24 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/4/2018 20:42:52
+// 9/4/2018 23:56:11
 
 
 package ba140645d.mjcompiler.ast;
 
 public class NumConst extends ConstValue {
 
-    public NumConst () {
+    private Integer numConst;
+
+    public NumConst (Integer numConst) {
+        this.numConst=numConst;
+    }
+
+    public Integer getNumConst() {
+        return numConst;
+    }
+
+    public void setNumConst(Integer numConst) {
+        this.numConst=numConst;
     }
 
     public void accept(Visitor visitor) {
@@ -29,6 +40,9 @@ public class NumConst extends ConstValue {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
         buffer.append("NumConst(\n");
+
+        buffer.append(" "+tab+numConst);
+        buffer.append("\n");
 
         buffer.append(tab);
         buffer.append(") [NumConst]");

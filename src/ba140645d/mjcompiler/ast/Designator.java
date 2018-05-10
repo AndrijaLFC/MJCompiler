@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/4/2018 20:42:54
+// 9/4/2018 23:56:13
 
 
 package ba140645d.mjcompiler.ast;
@@ -9,11 +9,21 @@ public class Designator implements SyntaxNode {
 
     private SyntaxNode parent;
     private int line;
+    private String designatorName;
     private DesignatorRepeatList DesignatorRepeatList;
 
-    public Designator (DesignatorRepeatList DesignatorRepeatList) {
+    public Designator (String designatorName, DesignatorRepeatList DesignatorRepeatList) {
+        this.designatorName=designatorName;
         this.DesignatorRepeatList=DesignatorRepeatList;
         if(DesignatorRepeatList!=null) DesignatorRepeatList.setParent(this);
+    }
+
+    public String getDesignatorName() {
+        return designatorName;
+    }
+
+    public void setDesignatorName(String designatorName) {
+        this.designatorName=designatorName;
     }
 
     public DesignatorRepeatList getDesignatorRepeatList() {
@@ -62,6 +72,9 @@ public class Designator implements SyntaxNode {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
         buffer.append("Designator(\n");
+
+        buffer.append(" "+tab+designatorName);
+        buffer.append("\n");
 
         if(DesignatorRepeatList!=null)
             buffer.append(DesignatorRepeatList.toString("  "+tab));

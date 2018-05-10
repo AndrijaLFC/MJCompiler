@@ -1,13 +1,24 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/4/2018 20:42:52
+// 9/4/2018 23:56:11
 
 
 package ba140645d.mjcompiler.ast;
 
 public class CharConst extends ConstValue {
 
-    public CharConst () {
+    private Character charConst;
+
+    public CharConst (Character charConst) {
+        this.charConst=charConst;
+    }
+
+    public Character getCharConst() {
+        return charConst;
+    }
+
+    public void setCharConst(Character charConst) {
+        this.charConst=charConst;
     }
 
     public void accept(Visitor visitor) {
@@ -29,6 +40,9 @@ public class CharConst extends ConstValue {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
         buffer.append("CharConst(\n");
+
+        buffer.append(" "+tab+charConst);
+        buffer.append("\n");
 
         buffer.append(tab);
         buffer.append(") [CharConst]");

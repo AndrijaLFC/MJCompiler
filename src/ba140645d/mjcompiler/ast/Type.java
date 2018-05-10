@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/4/2018 20:42:52
+// 9/4/2018 23:56:11
 
 
 package ba140645d.mjcompiler.ast;
@@ -9,7 +9,18 @@ public class Type implements SyntaxNode {
 
     private SyntaxNode parent;
     private int line;
-    public Type () {
+    private String typeName;
+
+    public Type (String typeName) {
+        this.typeName=typeName;
+    }
+
+    public String getTypeName() {
+        return typeName;
+    }
+
+    public void setTypeName(String typeName) {
+        this.typeName=typeName;
     }
 
     public SyntaxNode getParent() {
@@ -47,6 +58,9 @@ public class Type implements SyntaxNode {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
         buffer.append("Type(\n");
+
+        buffer.append(" "+tab+typeName);
+        buffer.append("\n");
 
         buffer.append(tab);
         buffer.append(") [Type]");

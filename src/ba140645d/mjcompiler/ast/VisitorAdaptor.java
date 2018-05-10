@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/4/2018 20:42:54
+// 9/4/2018 23:56:13
 
 
 package ba140645d.mjcompiler.ast;
@@ -9,22 +9,14 @@ public abstract class VisitorAdaptor implements Visitor {
 
     public void visit(Mulop Mulop) { }
     public void visit(Relop Relop) { }
-    public void visit(DoWhileBegin DoWhileBegin) { }
-    public void visit(MulopFactorList MulopFactorList) { }
-    public void visit(VarDeclDefinition VarDeclDefinition) { }
-    public void visit(MulopFactor MulopFactor) { }
     public void visit(Addop Addop) { }
     public void visit(Factor Factor) { }
-    public void visit(Term Term) { }
     public void visit(ConstValue ConstValue) { }
     public void visit(NumCharBoolConst NumCharBoolConst) { }
-    public void visit(DoWhileEnd DoWhileEnd) { }
-    public void visit(ProgramName ProgramName) { }
     public void visit(ConstVarClassDeclList ConstVarClassDeclList) { }
     public void visit(DesignatorStatement DesignatorStatement) { }
     public void visit(DesignatorRepeat DesignatorRepeat) { }
     public void visit(Statement Statement) { }
-    public void visit(VarDecl VarDecl) { }
     public void visit(MulopModuo MulopModuo) { visit(); }
     public void visit(MulopDivision MulopDivision) { visit(); }
     public void visit(MulopMultiplication MulopMultiplication) { visit(); }
@@ -49,10 +41,10 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(FactorNew FactorNew) { visit(); }
     public void visit(FactorConst FactorConst) { visit(); }
     public void visit(FactorFuncCal FactorFuncCal) { visit(); }
-    public void visit(MulopFactorDerived1 MulopFactorDerived1) { visit(); }
-    public void visit(MulopFactorListDerived2 MulopFactorListDerived2) { visit(); }
-    public void visit(MulopFactorListDerived1 MulopFactorListDerived1) { visit(); }
-    public void visit(TermDerived1 TermDerived1) { visit(); }
+    public void visit(MulopFactor MulopFactor) { visit(); }
+    public void visit(MulopFactorListEpsilon MulopFactorListEpsilon) { visit(); }
+    public void visit(MulopFactorList MulopFactorList) { visit(); }
+    public void visit(Term Term) { visit(); }
     public void visit(AddopTerm AddopTerm) { visit(); }
     public void visit(AddopTermListEpsilon AddopTermListEpsilon) { visit(); }
     public void visit(AddopTermList AddopTermList) { visit(); }
@@ -86,8 +78,8 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(OptExpr OptExpr) { visit(); }
     public void visit(OptPrintNumConstEpsilon OptPrintNumConstEpsilon) { visit(); }
     public void visit(OptPrintNumConst OptPrintNumConst) { visit(); }
-    public void visit(DoWhileEndDerived1 DoWhileEndDerived1) { visit(); }
-    public void visit(DoWhileBeginDerived1 DoWhileBeginDerived1) { visit(); }
+    public void visit(DoWhileEnd DoWhileEnd) { visit(); }
+    public void visit(DoWhileBegin DoWhileBegin) { visit(); }
     public void visit(StatementListEpsilon StatementListEpsilon) { visit(); }
     public void visit(StatementList StatementList) { visit(); }
     public void visit(EnclosedStatement EnclosedStatement) { visit(); }
@@ -127,12 +119,11 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(VarDeclRepeatList VarDeclRepeatList) { visit(); }
     public void visit(VarDeclListEpsilon VarDeclListEpsilon) { visit(); }
     public void visit(VarDeclList VarDeclList) { visit(); }
-    public void visit(VarDeclDefinitionDerived1 VarDeclDefinitionDerived1) { visit(); }
-    public void visit(VarDeclDerived1 VarDeclDerived1) { visit(); }
+    public void visit(VarDeclDefinition VarDeclDefinition) { visit(); }
+    public void visit(VarDecl VarDecl) { visit(); }
     public void visit(BoolConst BoolConst) { visit(); }
     public void visit(CharConst CharConst) { visit(); }
     public void visit(NumConst NumConst) { visit(); }
-    public void visit(NumCharBoolConstDerived1 NumCharBoolConstDerived1) { visit(); }
     public void visit(ConstDeclRepeat ConstDeclRepeat) { visit(); }
     public void visit(ConstDeclRepeatListDerived1 ConstDeclRepeatListDerived1) { visit(); }
     public void visit(ConstDeclRepeatList ConstDeclRepeatList) { visit(); }
@@ -142,7 +133,7 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(ConstVarClassDeclListClassDecl ConstVarClassDeclListClassDecl) { visit(); }
     public void visit(ConstVarClassDeclListVarDecl ConstVarClassDeclListVarDecl) { visit(); }
     public void visit(ConstVarClassDeclListConstDecl ConstVarClassDeclListConstDecl) { visit(); }
-    public void visit(ProgramNameDerived1 ProgramNameDerived1) { visit(); }
+    public void visit(ProgramName ProgramName) { visit(); }
     public void visit(Program Program) { visit(); }
 
 

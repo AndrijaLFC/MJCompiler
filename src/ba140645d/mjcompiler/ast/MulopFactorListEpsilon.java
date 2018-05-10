@@ -1,13 +1,13 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/4/2018 20:42:53
+// 9/4/2018 23:56:13
 
 
 package ba140645d.mjcompiler.ast;
 
-public class DoWhileBeginDerived1 extends DoWhileBegin {
+public class MulopFactorListEpsilon extends MulopFactorList {
 
-    public DoWhileBeginDerived1 () {
+    public MulopFactorListEpsilon () {
     }
 
     public void accept(Visitor visitor) {
@@ -28,10 +28,10 @@ public class DoWhileBeginDerived1 extends DoWhileBegin {
     public String toString(String tab) {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
-        buffer.append("DoWhileBeginDerived1(\n");
+        buffer.append("MulopFactorListEpsilon(\n");
 
         buffer.append(tab);
-        buffer.append(") [DoWhileBeginDerived1]");
+        buffer.append(") [MulopFactorListEpsilon]");
         return buffer.toString();
     }
 }
