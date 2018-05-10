@@ -1,13 +1,13 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/4/2018 23:56:11
+// 10/4/2018 19:54:56
 
 
 package ba140645d.mjcompiler.ast;
 
-public class ConstDeclRepeatListDerived1 extends ConstDeclRepeatList {
+public class ClassDefinitionStartDerived1 extends ClassDefinitionStart {
 
-    public ConstDeclRepeatListDerived1 () {
+    public ClassDefinitionStartDerived1 () {
     }
 
     public void accept(Visitor visitor) {
@@ -28,10 +28,10 @@ public class ConstDeclRepeatListDerived1 extends ConstDeclRepeatList {
     public String toString(String tab) {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
-        buffer.append("ConstDeclRepeatListDerived1(\n");
+        buffer.append("ClassDefinitionStartDerived1(\n");
 
         buffer.append(tab);
-        buffer.append(") [ConstDeclRepeatListDerived1]");
+        buffer.append(") [ClassDefinitionStartDerived1]");
         return buffer.toString();
     }
 }

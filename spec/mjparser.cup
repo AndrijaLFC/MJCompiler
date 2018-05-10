@@ -5,11 +5,15 @@ import java_cup.runtime.*;
 import java.io.*;
 import org.apache.log4j.*;
 
+
 parser code {:
+
 
 	boolean errorDetected = false;
 
+
 	Logger log = Logger.getLogger(getClass());
+
 
 
     // slede redefinisani metodi za prijavu gresaka radi izmene teksta poruke
@@ -42,6 +46,7 @@ parser code {:
         log.info(msg.toString());
     }
 
+
 :}
 
 scan with {:
@@ -56,20 +61,26 @@ scan with {:
 ********    Terminalni simboli    **********
 ********************************************/
 
+
 // kljucne reci
 terminal PROGRAM, BREAK, CLASS, ELSE, IF, NEW, PRINT, READ, RETURN, VOID, DO, WHILE, EXTENDS, CONTINUE, CONST ;
 
+
 // identifikator
-terminal IDENTIFIKATOR;
+terminal String IDENTIFIKATOR ;
+
 
 // konstante
-terminal NUM_CONST, CHAR_CONST, BOOL_CONST;
+terminal Integer NUM_CONST;
+terminal Character CHAR_CONST;
+terminal Boolean BOOL_CONST;
 
 // Addop operatori
 terminal OP_ADDITION, OP_SUBTRACTION ;
 
 // mulop operatori
 terminal OP_MULTIPLICATION, OP_DIVISION, OP_MODUO ;
+
 
 // relop operatori
 terminal OP_EQUALS, OP_NOT_EQUALS, OP_GREATER, OP_GREATER_EQUAL, OP_LESSER, OP_LESSER_EQUAL;
@@ -88,11 +99,13 @@ terminal OP_L_PARENTHESES, OP_R_PARENTHESES, OP_L_SQUARED_PARENTHESES, OP_R_SQUA
 **********************************************/
 
 
+
 non terminal Program, ConstVarClassDeclList, ConstDecl, ConstDeclRepeatList, ConstDeclRepeat, NumCharBoolConst;
 non terminal VarDecl, VarDeclList, VarDeclRepeatList, VarDeclRepeat, OptArrayDecl, Type, StatementList;
 non terminal ClassDecl, OptExtends, OptMethodDeclList;
 non terminal MethodDeclList, MethodDecl, ReturnType, OptFormPars;
 non terminal FormPars, FormParsRepeatList, FormParsRepeat;
+
 
 non terminal Statement, OptElseStatement, DesignatorStatement, OptActPars, ActPars, ActParsRepeatList, ActParsRepeat;
 non terminal Condition, ConditionRepeatList, ConditionRepeat, CondTerm, CondFactRepeatList;
@@ -101,80 +114,115 @@ non terminal MulopFactorList, MulopFactor, Factor, Designator, DesignatorRepeatL
 non terminal Relop, Addop, Mulop;
 non terminal ProgramName, ClassName;
 
+
+
+
 non terminal OptExpr, OptPrintNumConst, OptParenthesesActPars, OptArrExpr, ConstDefinition;
 non terminal VarDeclDefinition;
-non terminal MethodName;
-non terminal FormParDecl;
+
+non terminal MethodName ;
+
+non terminal FormParDecl ;
+
 non terminal ConstValue;
 non terminal DoWhileBegin;
 non terminal DoWhileEnd;
 
+non terminal ClassDefinitionStart;
+non terminal ClassDefinitionEnd;
 /*******************************************
 ********    Gramatika jezika    ************
 ********************************************/
 
 
+
+
 precedence left ELSE ;
+
 
 Program ::= (Program) PROGRAM ProgramName:programName ConstVarClassDeclList OP_L_BRACE_PARENTHESES MethodDeclList OP_R_BRACE_PARENTHESES ;
 
-ProgramName ::= IDENTIFIKATOR:programName;
+
+
+ProgramName ::= (ProgramName) IDENTIFIKATOR:programName;
+
 
 ConstVarClassDeclList ::= (ConstVarClassDeclListConstDecl) ConstVarClassDeclList ConstDecl
                     |     (ConstVarClassDeclListVarDecl) ConstVarClassDeclList VarDecl
                     |     (ConstVarClassDeclListClassDecl) ConstVarClassDeclList ClassDecl
-                    |     (ConstVarClassDeclListEpsilon) /* epsilon */ ;
+                    |     (ConstVarClassDeclListEpsilon) /* epsilon */
+                    ;
+
+
 
 
 // deklaracija konstanti
 ConstDecl ::= (ConstDecl) CONST Type ConstDefinition  ConstDeclRepeatList  OP_SEMICOLN  ;
 
-ConstDefinition ::= (ConstDefinition) IDENTIFIKATOR:constName OP_EQUAL NumCharBoolConst:constValue ;
+ConstDefinition ::= (ConstDefinition) IDENTIFIKATOR:constName OP_EQUAL ConstValue:constValue ;
 
-ConstDeclRepeatList ::= (ConstDeclRepeatList) ConstDeclRepeatList ConstDeclRepeat | /* epsilon */ ;
+ConstDeclRepeatList ::= (ConstDeclRepeatListDeclared) ConstDeclRepeatList ConstDeclRepeat
+                    |   (ConstDeclRepeatListEpsilon)/* epsilon */ ;
+
 ConstDeclRepeat ::= (ConstDeclRepeat) OP_COMMA ConstDefinition;
 
-NumCharBoolConst ::= ConstValue;
+
 
 ConstValue ::=      (NumConst)  NUM_CONST:numConst
                 |   (CharConst) CHAR_CONST:charConst
                 |   (BoolConst) BOOL_CONST:boolConst
                 ;
 
+
 // deklaracija promenljivih
-VarDecl ::= Type VarDeclDefinition VarDeclRepeatList OP_SEMICOLN  ;
+VarDecl ::= (VarDecl) Type VarDeclDefinition VarDeclRepeatList OP_SEMICOLN  ;
 
-VarDeclDefinition ::= IDENTIFIKATOR:varName OptArrayDecl:isArray;
 
-VarDeclList ::= (VarDeclList) VarDeclList VarDecl | (VarDeclListEpsilon) /* epsilon */ ;
-VarDeclRepeatList ::= (VarDeclRepeatList) VarDeclRepeatList VarDeclRepeat | (VarDeclRepeatListEpsilon) /* epsilon */ ;
+VarDeclDefinition ::= (VarDeclDefinition) IDENTIFIKATOR:varName OptArrayDecl:isArray;
+
+VarDeclList ::= (VarDeclListDeclared) VarDeclList VarDecl
+            |   (VarDeclListEpsilon) /* epsilon */
+            ;
+
+VarDeclRepeatList ::= (VarDeclRepeatListDeclared) VarDeclRepeatList VarDeclRepeat
+                    | (VarDeclRepeatListEpsilon) /* epsilon */
+                    ;
+
 VarDeclRepeat ::= (VarDeclRepeat) OP_COMMA VarDeclDefinition;
 
-OptArrayDecl ::= (OptArrayDecl) OP_L_SQUARED_PARENTHESES OP_R_SQUARED_PARENTHESES  | (OptArrayDeclEpsilon)/* epsilon */ ;
+OptArrayDecl ::=  (OptArrayDeclared) OP_L_SQUARED_PARENTHESES OP_R_SQUARED_PARENTHESES
+                | (OptArrayDeclEpsilon)/* epsilon */
+                ;
 
 Type ::= (Type) IDENTIFIKATOR:typeName ;
 
 
 // deklaracija klase
-ClassDecl ::= (ClassDecl) CLASS ClassName:className OptExtends OP_L_BRACE_PARENTHESES VarDeclList OptMethodDeclList OP_R_BRACE_PARENTHESES ;
+ClassDecl ::= (ClassDecl) CLASS ClassName:className OptExtends ClassDefinitionStart VarDeclList OptMethodDeclList ClassDefinitionEnd;
+
+ClassDefinitionStart ::= OP_L_BRACE_PARENTHESES;
+ClassDefinitionEnd ::= OP_R_BRACE_PARENTHESES;
 ClassName ::= (ClassName) IDENTIFIKATOR:className;
 
 
-OptExtends ::= (OptExtends) EXTENDS Type:typeName | (OptExtendsEpsilon) /* epsilon*/;
+OptExtends ::= (OptExtendsExtended) EXTENDS Type:typeName | (OptExtendsEpsilon) /* epsilon*/;
 
 // deklaracija metoda
-MethodDeclList ::= (MethodDeclList) MethodDeclList  MethodDecl | (MethodDeclListEpsilon) /* epsilon */ ;
+MethodDeclList ::= (MethodDeclListDeclared) MethodDeclList  MethodDecl
+                |  (MethodDeclListEpsilon) /* epsilon */ ;
 
-OptMethodDeclList ::= (OptMethodDeclList) OP_L_BRACE_PARENTHESES MethodDeclList OP_R_BRACE_PARENTHESES | (OptMethodDeclListEpsilon) /* epsilon */ ;
+OptMethodDeclList ::= (OptMethodDeclListDeclared) OP_L_BRACE_PARENTHESES MethodDeclList OP_R_BRACE_PARENTHESES
+                    | (OptMethodDeclListEpsilon) /* epsilon */ ;
 
 
 MethodDecl ::= (MethodDecl) ReturnType MethodName  OP_L_PARENTHESES OptFormPars OP_R_PARENTHESES VarDeclList OP_L_BRACE_PARENTHESES StatementList OP_R_BRACE_PARENTHESES;
 
 MethodName ::= (MethodName) IDENTIFIKATOR:methodName ;
 
-ReturnType ::= (ReturnType) Type | (ReturnTypeVoid) VOID;
+ReturnType ::= (ReturnNonVoid) Type | (ReturnTypeVoid) VOID;
 
-OptFormPars ::= (OptFormPars) FormPars |  (OptFormParsEpsilon) /* epsilon */;
+OptFormPars ::= (OptFormParsDeclared) FormPars |  (OptFormParsEpsilon) /* epsilon */;
+
 
 
 
@@ -183,7 +231,8 @@ OptFormPars ::= (OptFormPars) FormPars |  (OptFormParsEpsilon) /* epsilon */;
 FormPars ::= (FormPars) FormParDecl FormParsRepeatList ;
 FormParDecl ::= (FormParDecl) Type:formParType IDENTIFIKATOR:formParName OptArrayDecl;
 
-FormParsRepeatList ::= (FormParsRepeatList) FormParsRepeatList FormParsRepeat | (FormParsRepeatListEpsilon   )/* epsilon */ ;
+FormParsRepeatList ::= (FormParsRepeatListDeclared) FormParsRepeatList FormParsRepeat
+                    |  (FormParsRepeatListEpsilon)/* epsilon */ ;
 FormParsRepeat ::= (FormParsRepeat) OP_COMMA FormParDecl ;
 
 
@@ -201,17 +250,20 @@ Statement ::= (StatementDesignator) DesignatorStatement OP_SEMICOLN
             | (EnclosedStatement)   OP_L_BRACE_PARENTHESES StatementList OP_R_BRACE_PARENTHESES
             ;
 
-StatementList ::= (StatementList) StatementList Statement | (StatementListEpsilon)/*epsilon*/ ;
+StatementList ::= (StatementListDeclared) StatementList Statement
+                | (StatementListEpsilon)/*epsilon*/ ;
 
 
-DoWhileBegin ::= DO ;
-DoWhileEnd ::= WHILE ;
+DoWhileBegin ::= (DoWhileBegin) DO ;
+DoWhileEnd ::= (DoWhileEnd) WHILE ;
 
-OptPrintNumConst ::= (OptPrintNumConst) OP_COMMA NUM_CONST | (OptPrintNumConstEpsilon) /*epsilon*/ ;
+OptPrintNumConst ::=  (OptPrintNumConstDeclared) OP_COMMA NUM_CONST
+                    | (OptPrintNumConstEpsilon) /*epsilon*/ ;
 
-OptExpr ::= (OptExpr) Expr | (OptExprEpsilon) /*epsilon*/ ;
+OptExpr ::= (OptExprDeclared) Expr | (OptExprEpsilon) /*epsilon*/ ;
 
-OptElseStatement ::= (OptElseStatement) ELSE Statement | (OptElseStatementEpsilon)/* epsilon */ ;
+OptElseStatement ::=  (OptElseStatementDeclared) ELSE Statement
+                    | (OptElseStatementEpsilon)/* epsilon */ ;
 
 DesignatorStatement ::=     (DesignatorStatementAssign)     Designator OP_EQUAL Expr
                         |   (DesignatorStatementActualPars) Designator OP_L_PARENTHESES OptActPars OP_R_PARENTHESES
@@ -219,11 +271,12 @@ DesignatorStatement ::=     (DesignatorStatementAssign)     Designator OP_EQUAL 
                         |   (DesignatorStatementDecrement)  Designator OP_DECREMENT
                         ;
 
-OptActPars ::= (OptActPars) ActPars | (OptActParsEpsilon) /* epsilon */ ;
+OptActPars ::= (OptActParsDeclared) ActPars | (OptActParsEpsilon) /* epsilon */ ;
 
 ActPars ::= (ActPars) Expr ActParsRepeatList ;
 
-ActParsRepeatList ::= (ActParsRepeatList) ActParsRepeatList ActParsRepeat | (ActParsRepeatListEpsilon) /* epsilon */ ;
+ActParsRepeatList ::= (ActParsRepeatListDeclared) ActParsRepeatList ActParsRepeat
+                    | (ActParsRepeatListEpsilon) /* epsilon */ ;
 
 ActParsRepeat ::= (ActParsRepeat) OP_COMMA Expr ;
 
@@ -231,34 +284,41 @@ ActParsRepeat ::= (ActParsRepeat) OP_COMMA Expr ;
 
 Condition ::= (Condition) CondTerm ConditionRepeatList ;
 
-ConditionRepeatList ::=     (ConditionRepeatList) ConditionRepeatList ConditionRepeat
+ConditionRepeatList ::=     (ConditionRepeatListDeclared) ConditionRepeatList ConditionRepeat
                         |   (ConditionRepeatListEpsilon) /* epsilon */
                         ;
 ConditionRepeat ::= (ConditionRepeat) OP_LOGIC_OR CondTerm ;
 
 CondTerm ::= (CondTerm) CondFact CondFactRepeatList;
 
-CondFactRepeatList ::=      (CondFactRepeatList) CondFactRepeatList CondFactRepeat
+CondFactRepeatList ::=      (CondFactRepeatListDeclared) CondFactRepeatList CondFactRepeat
                         |   (CondFactRepeatListEpsilon) /* epsilon */
                         ;
 
 CondFactRepeat ::= (CondFactRepeat) OP_LOGIC_AND CondFact ;
 
 CondFact ::= (CondFact) Expr OptRelopExpr;
-OptRelopExpr ::= (OptRelopExpr) Relop Expr | (OptRelopExprEpsilon) /* epsilon */ ;
+
+OptRelopExpr ::=  (OptRelopExprDeclared) Relop Expr
+                | (OptRelopExprEpsilon) /* epsilon */ ;
 
 
 Expr ::= (Expr) OptMinus Term AddopTermList ;
-OptMinus ::= (OptMinus) OP_SUBTRACTION | (OptMinusEpsilon) /* epsilon */ ;
+OptMinus ::=    (OptMinusDeclared) OP_SUBTRACTION
+            |   (OptMinusEpsilon) /* epsilon */ ;
 
-AddopTermList ::= (AddopTermList) AddopTermList AddopTerm | (AddopTermListEpsilon) /*epsilon*/;
+AddopTermList ::= (AddopTermListDeclared) AddopTermList AddopTerm
+                | (AddopTermListEpsilon) /*epsilon*/;
+
 AddopTerm ::= (AddopTerm) Addop Term ;
 
 
-Term ::= Factor MulopFactorList ;
+Term ::= (Term) Factor MulopFactorList ;
 
-MulopFactorList ::= MulopFactorList MulopFactor | /* epsilon */ ;
-MulopFactor ::= Mulop Factor ;
+MulopFactorList ::= (MulopFactorListDeclared) MulopFactorList MulopFactor
+                |   (MulopFactorListEpsilon) /* epsilon */ ;
+
+MulopFactor ::= (MulopFactor) Mulop Factor ;
 
 Factor ::=      (FactorFuncCal)   Designator OptParenthesesActPars
             |   (FactorConst)     ConstValue
@@ -266,11 +326,11 @@ Factor ::=      (FactorFuncCal)   Designator OptParenthesesActPars
             |   (FactorExpr)      OP_L_PARENTHESES Expr OP_R_PARENTHESES
             ;
 
-OptArrExpr ::= (OptArrExpr) OP_L_SQUARED_PARENTHESES Expr OP_R_SQUARED_PARENTHESES
+OptArrExpr ::= (OptArrExprDeclared) OP_L_SQUARED_PARENTHESES Expr OP_R_SQUARED_PARENTHESES
              | (OptArrExprEpsilon) /*epsilon*/
              ;
 
-OptParenthesesActPars ::= (OptParenthesesActPars) OP_L_PARENTHESES OptActPars OP_R_PARENTHESES
+OptParenthesesActPars ::= (OptParenthesesActParsDeclared) OP_L_PARENTHESES OptActPars OP_R_PARENTHESES
                         | (OptParenthesesActParsEpsilon) /*epsilon*/
                         ;
 
@@ -278,7 +338,7 @@ Designator ::= (Designator) IDENTIFIKATOR:designatorName DesignatorRepeatList ;
 
 
 
-DesignatorRepeatList ::= (DesignatorRepeatList) DesignatorRepeatList DesignatorRepeat
+DesignatorRepeatList ::= (DesignatorRepeatListDeclared)  DesignatorRepeatList DesignatorRepeat
                        | (DesignatorRepeatListEpsilon) /* epsilon */
                        ;
 

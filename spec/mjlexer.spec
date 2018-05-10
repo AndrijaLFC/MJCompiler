@@ -83,14 +83,14 @@ import java_cup.runtime.Symbol;
 
 
 
-[0-9]+                      { return newSymbol(sym.NUM_CONST, new Integer(yytext()));   }
-([a-zA-Z])([a-zA-Z0-9]|_)*  { return newSymbol(sym.IDENTIFIKATOR, yytext());            }
-\".\"                       { return newSymbol(sym.CHAR_CONST, yytext());               }
+[0-9]+                      { return newSymbol(sym.NUM_CONST, new Integer(yytext()));               }
+([a-zA-Z])([a-zA-Z0-9]|_)*  { return newSymbol(sym.IDENTIFIKATOR, yytext());                        }
+\".\"                       { return newSymbol(sym.CHAR_CONST, new Character(yytext().charAt(1)));  }
 
 
-"//"                    { yybegin(COMMENT_STATE); }
-<COMMENT_STATE> "\r\n"  { yybegin(YYINITIAL); }
-<COMMENT_STATE> .       { yybegin(COMMENT_STATE); }
+"//"                    { yybegin(COMMENT_STATE);   }
+<COMMENT_STATE> "\r\n"  { yybegin(YYINITIAL);       }
+<COMMENT_STATE> .       { yybegin(COMMENT_STATE);   }
 
 
 . { System.err.println("Leksicka greska (" + yytext() + ") u liniji " + (yyline + 1) + ")"); }

@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/4/2018 23:56:11
+// 10/4/2018 19:54:56
 
 
 package ba140645d.mjcompiler.ast;
@@ -11,7 +11,7 @@ public class BoolConst extends ConstValue {
 
     public BoolConst (Boolean boolConst) {
         this.boolConst=boolConst;
-        if(boolConst!=null) boolConst.setParent(this);
+        //if(boolConst!=null) boolConst.setParent(this);
     }
 
     public Boolean getBoolConst() {
@@ -27,16 +27,16 @@ public class BoolConst extends ConstValue {
     }
 
     public void childrenAccept(Visitor visitor) {
-        if(boolConst!=null) boolConst.accept(visitor);
+     //   if(boolConst!=null) boolConst.accept(visitor);
     }
 
     public void traverseTopDown(Visitor visitor) {
         accept(visitor);
-        if(boolConst!=null) boolConst.traverseTopDown(visitor);
+       // if(boolConst!=null) boolConst.traverseTopDown(visitor);
     }
 
     public void traverseBottomUp(Visitor visitor) {
-        if(boolConst!=null) boolConst.traverseBottomUp(visitor);
+        //if(boolConst!=null) boolConst.traverseBottomUp(visitor);
         accept(visitor);
     }
 
@@ -46,7 +46,7 @@ public class BoolConst extends ConstValue {
         buffer.append("BoolConst(\n");
 
         if(boolConst!=null)
-            buffer.append(boolConst.toString("  "+tab));
+            buffer.append(Boolean.toString(boolConst));
         else
             buffer.append(tab+"  null");
         buffer.append("\n");

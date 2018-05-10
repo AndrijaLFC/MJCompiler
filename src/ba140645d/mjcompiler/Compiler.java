@@ -20,6 +20,7 @@ public class Compiler{
     // That can be done with cd $PROJ_FOLDER\src
     // Then we use the command to generate in directory ast all the nodes of the AST
     // java -jar .\..\lib\cup_v10k.jar -ast ba140645d.mjcompiler.ast -parser Parser  -buildtree ..\spec\mjparser.cup
+
     static {
         DOMConfigurator.configure(Log4JUtil.instance().findLoggerConfigFile());
         Log4JUtil.instance().prepareLogFile(Logger.getRootLogger());
@@ -30,7 +31,7 @@ public class Compiler{
         Reader bufferReader = null;
 
         try{
-            File source = new File("test/testProgram.mj");
+            File source = new File("test/testProgram2.mj");
             log.info("Compiling source file :" + source.getAbsolutePath());
 
             bufferReader = new BufferedReader(new FileReader(source));
@@ -41,12 +42,11 @@ public class Compiler{
 
             Symbol symbol = parser.parse();
 
-            SyntaxNode root = (SyntaxNode)symbol;
+            SyntaxNode root = (SyntaxNode)symbol.value;
 
-            Tab.init();
+            SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
 
-            Tab.currentScope().addToLocals(new Obj(Obj.Type, "bool", Tab.intType));
-
+            root.traverseBottomUp(semanticAnalyzer);
 
 
 
