@@ -12,14 +12,16 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     private boolean firstIteration = true;
     private Type currentType = null;
     private Obj currentTypeObj = Tab.noObj;
+    private Obj currentMethod = Tab.noObj;
+    private Struct currentTypeStruct = Tab.nullType;
 
 
 
     public SemanticAnalyzer(){
         Tab.init();
 
-        Tab.currentScope().addToLocals(new Obj(Obj.Type, "bool", Tab.intType));
 
+        Tab.currentScope().addToLocals(new Obj(Obj.Type, "bool", Tab.intType));
     }
 
 
@@ -33,13 +35,84 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
 
     private void logInfo(String message, SyntaxNode node){
+        String lineInfo = "Na liniji (" + node.getLine() + "):";
+        System.out.println(lineInfo + message);
+    }
+
+    private void logError(String message, SyntaxNode node){
         String lineInfo = "Greska na liniji (" + node.getLine() + "):";
         System.err.println(lineInfo + message);
     }
 
-    @Override
-    public void visit(Program Program) {
+    private String formatAlreadyDefinedMessage(String symbolName){
+        return "Simbol [" + symbolName + "] je vec definisan!";
+    }
 
+    private String formatSymbolNotDefinedMessage(String symbolName){
+        return "Simbol [" + symbolName + "] nije definisan!";
+    }
+
+    private String formatSymbolName(String symbolName){
+        return "Simbol [" + symbolName + "]";
+    }
+
+    private String symbolKindToString(int symbolKind){
+        String retVal = "Unknown";
+        switch(symbolKind){
+            case Obj.Con :  retVal =  "Con"; break;
+            case Obj.Elem : retVal = "Elem"; break;
+            case Obj.Fld : retVal = "Fld"; break;
+            case Obj.Meth : retVal = "Meth"; break;
+            case Obj.Prog : retVal = "Prog"; break;
+            case Obj.Type : retVal = "Type"; break;
+            case Obj.Var : retVal = "Var"; break;
+        }
+
+        return retVal;
+    }
+
+    private String symbolTypeToString(int symbolType){
+        String retVal = "Unknown";
+
+        switch(symbolType){
+            case Struct.Array : retVal = "Array";       break;
+            case Struct.Char :  retVal = "Char";        break;
+            case Struct.Int :   retVal = "Int";         break;
+            case Struct.None :  retVal = "None";        break;
+        }
+
+        return retVal;
+    }
+
+    private String formatSymbolInfo(Obj symbol){
+        String symbolNameFormat = formatSymbolName(symbol.getName());
+        String symbolKind = symbolKindToString(symbol.getKind());
+        String symbolType = symbolTypeToString(symbol.getType().getKind());
+
+        String format = symbolNameFormat + " kind : " + symbolKind + ", type : " + symbolType;
+
+        if (symbol.getType().getKind() == Struct.Array)
+            format += " of " + symbolTypeToString(symbol.getType().getElemType().getKind());
+
+
+        return format;
+
+    }
+
+    @Override
+    public void visit(Program program) {
+
+        // pronalazimo simbol programa u tabeli simbola
+
+        Obj programObj = Tab.find(program.getProgramName().getProgramName());
+
+        logInfo(formatSymbolInfo(programObj), program);
+
+        // ulancamo u njega sve lokalne simbole
+        Tab.chainLocalSymbols(programObj);
+
+        // zatvorimo opseg
+        Tab.closeScope();
     }
 
     @Override
@@ -64,7 +137,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         String constName = constDefinition.getConstName();
 
         if (isDefined(constName))
-            logInfo("Simbol [" + constName +"] je vec definisan!", constDefinition);
+            logError(formatAlreadyDefinedMessage(constName), constDefinition);
         else{
             // dohvatanje vrste tipa podatka
             Struct type = currentTypeObj.getType();
@@ -94,8 +167,14 @@ public class SemanticAnalyzer extends VisitorAdaptor{
             if (type.assignableTo(rightSide)){
                 Obj constObj = Tab.insert(Obj.Con, constName, type);
 
+                logInfo(formatSymbolInfo(constObj), constDefinition);
+
                 constObj.setAdr(value);
+            }else{
+                //TODO logError incompatible types
             }
+
+
         }
     }
 
@@ -110,7 +189,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         currentType = type;
 
         if (!isDefined(typeName)){
-            logInfo("Simbol [" + typeName + "] nije definisan!", type);
+            logError(formatSymbolNotDefinedMessage(typeName), type);
 
             return;
         }
@@ -124,12 +203,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         else
             logInfo("Simbol [" + typeName + "] nije tip!", type);
 
-
-    }
-
-    @Override
-    public void visit(VarDecl varDecl){
-
+        currentTypeStruct = currentTypeObj.getType();
     }
 
     @Override
@@ -160,6 +234,35 @@ public class SemanticAnalyzer extends VisitorAdaptor{
             Tab.insert(Obj.Var, varName, currentTypeObj.getType());
     }
 
+    @Override
+    public void visit(MethodName methodName){
+        String name = methodName.getMethodName();
+
+        if (isDefined(name))
+            logError(formatAlreadyDefinedMessage(name), methodName);
+        else
+            currentMethod = Tab.insert(Obj.Meth, name, currentTypeStruct);
+
+        Tab.openScope();
+    }
+
+    @Override
+    public void visit(MethodDecl methodDecl){
+
+        if (currentMethod != Tab.noObj) {
+            Tab.chainLocalSymbols(currentMethod);
+
+            //logInfo(for);
+        }
+
+        Tab.closeScope();
+    }
+
+
+    @Override
+    public void visit(ReturnTypeVoid voidReturnType){
+        currentTypeStruct = Tab.nullType;
+    }
 
 
 }

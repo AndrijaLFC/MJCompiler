@@ -4,7 +4,6 @@ const bool isTrue = true;
 const char robi = "R";
 char lent;
 int arr[];
-Meh arr2[];
 {
 
 }

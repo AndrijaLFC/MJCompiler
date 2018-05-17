@@ -115,6 +115,11 @@ non terminal Relop, Addop, Mulop;
 non terminal ProgramName, ClassName;
 
 
+non terminal MethodTypeNameDeclaration;
+non terminal MethodDefinitionBegin;
+non terminal MethodDefinitionEnd;
+
+
 
 
 non terminal OptExpr, OptPrintNumConst, OptParenthesesActPars, OptArrExpr, ConstDefinition;
@@ -130,6 +135,7 @@ non terminal DoWhileEnd;
 
 non terminal ClassDefinitionStart;
 non terminal ClassDefinitionEnd;
+
 /*******************************************
 ********    Gramatika jezika    ************
 ********************************************/
@@ -217,7 +223,14 @@ OptMethodDeclList ::= (OptMethodDeclListDeclared) OP_L_BRACE_PARENTHESES MethodD
 
 MethodDecl ::= (MethodDecl) ReturnType MethodName  OP_L_PARENTHESES OptFormPars OP_R_PARENTHESES VarDeclList OP_L_BRACE_PARENTHESES StatementList OP_R_BRACE_PARENTHESES;
 
-MethodName ::= (MethodName) IDENTIFIKATOR:methodName ;
+
+MethodTypeNameDeclaration ::= ReturnType MethodName
+
+MethodDefinitionBegin ::= OP_L_PARENTHESES;
+
+MethodDefinitionEnd ::= OP_R_PARENTHESES;
+
+MethodName ::= (MethodName) IDENTIFIKATOR:methodName;
 
 ReturnType ::= (ReturnNonVoid) Type | (ReturnTypeVoid) VOID;
 
