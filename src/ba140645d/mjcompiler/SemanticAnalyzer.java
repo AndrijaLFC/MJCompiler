@@ -2,18 +2,31 @@ package ba140645d.mjcompiler;
 
 
 import ba140645d.mjcompiler.ast.*;
-import com.sun.org.apache.xpath.internal.operations.Bool;
+import com.sun.istack.internal.Nullable;
 import rs.etf.pp1.symboltable.Tab;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 
 public class SemanticAnalyzer extends VisitorAdaptor{
 
-    private boolean firstIteration = true;
+    // da li je semanticka provera
+    private boolean semanticCheck = true;
+
+    // trenutni tip
     private Type currentType = null;
+
+    // objekat trenutnog tipa
     private Obj currentTypeObj = Tab.noObj;
+
+    //struktura trenutnog tipa
+    private Struct currentTypeStruct = Tab.noType;
+
+    // objekat trenutnog metoda
     private Obj currentMethod = Tab.noObj;
-    private Struct currentTypeStruct = Tab.nullType;
+
+    // objekat pocetnog designatora
+    private Obj designatorObj = Tab.noObj;
+
 
 
 
@@ -35,12 +48,12 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
 
     private void logInfo(String message, SyntaxNode node){
-        String lineInfo = "Na liniji (" + node.getLine() + "):";
+        String lineInfo = "Na liniji (" + node.getLine() + "): ";
         System.out.println(lineInfo + message);
     }
 
     private void logError(String message, SyntaxNode node){
-        String lineInfo = "Greska na liniji (" + node.getLine() + "):";
+        String lineInfo = "Greska na liniji (" + node.getLine() + "): ";
         System.err.println(lineInfo + message);
     }
 
@@ -50,6 +63,29 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
     private String formatSymbolNotDefinedMessage(String symbolName){
         return "Simbol [" + symbolName + "] nije definisan!";
+    }
+
+    private String formatAssigmentMessage(Struct leftSideType, Struct rightSideType, @Nullable Struct expectedType){
+        String leftSideTypeName = symbolTypeToString(leftSideType.getKind());
+        String rightSideTypeName = symbolTypeToString(rightSideType.getKind());
+        String expectedTypeName = (expectedType != null)? symbolTypeToString(expectedType.getKind()) : null;
+
+        String message = "Na levoj strani je tip : {" + leftSideTypeName + "}. Na desnoj strani je tip : {" + rightSideTypeName +"}. ";
+
+        if (expectedType != null)
+            message += "Ocekivani tip je : {" + expectedTypeName + "}";
+
+        return message;
+    }
+
+    private String formatAssigmentMessage(String leftSideType, String rightSideType, @Nullable String expectedType){
+
+        String message = "Na levoj strani je tip : {" + leftSideType+ "}. Na desnoj strani je tip : {" + rightSideType +"}. ";
+
+        if (expectedType != null)
+            message += "Ocekivani tip je : {" + expectedType + "}";
+
+        return message;
     }
 
     private String formatSymbolName(String symbolName){
@@ -150,6 +186,10 @@ public class SemanticAnalyzer extends VisitorAdaptor{
             // tip sa desne strane dodele
             Struct rightSide = Tab.noType;
 
+            // da li je sa desne strane bool konstanta
+            boolean isConstValBool = false;
+
+            // postavljamo tip podatka sa desne strane i citamo vrednost
             if (constValue instanceof NumConst){
                 rightSide = Tab.intType;
 
@@ -161,17 +201,24 @@ public class SemanticAnalyzer extends VisitorAdaptor{
             }else if (constValue instanceof BoolConst){
                 rightSide = Tab.find("bool").getType();
 
+                isConstValBool = true;
+
                 value = ((BoolConst) constValue).getBoolConst()  ? 1 : 0;
             }
 
-            if (type.assignableTo(rightSide)){
+            // da li je bool tip
+            boolean isBoolDef = currentTypeObj.getName().equals("bool");
+
+            if ((isBoolDef && isConstValBool) || (type.assignableTo(rightSide) && !isBoolDef) ){
                 Obj constObj = Tab.insert(Obj.Con, constName, type);
 
                 logInfo(formatSymbolInfo(constObj), constDefinition);
 
                 constObj.setAdr(value);
             }else{
-                //TODO logError incompatible types
+                String assigmentErrorMsg = formatAssigmentMessage(currentTypeObj.getName(), symbolTypeToString(rightSide.getKind()), currentTypeObj.getName());
+
+                logError(assigmentErrorMsg, constDefinition);
             }
 
 
@@ -201,7 +248,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         if (typeObj.getKind() == Obj.Type)
             currentTypeObj = typeObj;
         else
-            logInfo("Simbol [" + typeName + "] nije tip!", type);
+            logError(formatSymbolName(typeObj.getName()) + " nije tip!", type);
 
         currentTypeStruct = currentTypeObj.getType();
     }
@@ -226,43 +273,112 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         // koja predstavlja niz tog tipa
         Struct arrayStruct = new Struct(Struct.Array, currentTypeObj.getType());
 
+        Obj varObj = null;
         // ako je deklaracija niza, onda postavljamo za tip array strukturu
         // inace postavljamo sam tip koji je naveden
         if (isArrayDecl)
-            Tab.insert(Obj.Var, varName, arrayStruct);
+            varObj = Tab.insert(Obj.Var, varName, arrayStruct);
         else
-            Tab.insert(Obj.Var, varName, currentTypeObj.getType());
+            varObj = Tab.insert(Obj.Var, varName, currentTypeObj.getType());
+
+        logInfo(formatSymbolInfo(varObj), varDeclDefinition);
     }
 
     @Override
     public void visit(MethodName methodName){
         String name = methodName.getMethodName();
 
+        // uzimamo da je podrazumevano noObj
+        currentMethod = Tab.noObj;
+
+        // ako je vec definisano onda prijavimo gresku
         if (isDefined(name))
             logError(formatAlreadyDefinedMessage(name), methodName);
         else
             currentMethod = Tab.insert(Obj.Meth, name, currentTypeStruct);
 
+        // otvorimo opseg
         Tab.openScope();
     }
 
     @Override
     public void visit(MethodDecl methodDecl){
 
+        // uvezujemo lokalne simbole samo ukoliko je
+        // metoda dodata u tabelu simbola
         if (currentMethod != Tab.noObj) {
             Tab.chainLocalSymbols(currentMethod);
 
+            logInfo(formatSymbolInfo(currentMethod), methodDecl);
             //logInfo(for);
         }
 
+        // zatvorimo doseg
         Tab.closeScope();
     }
 
 
     @Override
     public void visit(ReturnTypeVoid voidReturnType){
-        currentTypeStruct = Tab.nullType;
+        currentTypeStruct = Tab.noType;
     }
+
+    @Override
+    public void visit(FormParDecl formParDecl){
+        // naziv parametra
+        String formParName = formParDecl.getFormParName();
+
+        // ako je vec definisan samo napisati gresku i vratiti se
+        if (isDefinedInCurrentScope(formParName)){
+            logError(formatAlreadyDefinedMessage(formParName), formParDecl);
+            return;
+        }
+
+        // da li je niz?
+        OptArrayDecl isArray = formParDecl.getOptArrayDecl();
+
+        // niz struktura u slucaju da je tip niz nekog tipa podatka (npr int[])
+        Struct arrayStruct = new Struct(Struct.Array, currentTypeStruct);
+
+        Obj paramObj = null;
+
+        if (isArray instanceof  OptArrayDeclared)
+            paramObj = Tab.insert(Obj.Var, formParName, arrayStruct);
+        else
+            paramObj = Tab.insert(Obj.Var, formParName, currentTypeStruct);
+
+        // informativno logovanje
+        logInfo(formatSymbolInfo(paramObj), formParDecl);
+    }
+
+
+    @Override
+    public void visit(DesignatorInitialName designatorInitialName){
+        logInfo(designatorInitialName.getDesignatorName() +" initial", designatorInitialName);
+
+        designatorObj = Tab.find(designatorInitialName.getDesignatorName());
+
+        if (designatorObj == Tab.noObj)
+            logError(formatSymbolNotDefinedMessage(designatorInitialName.getDesignatorName()), designatorInitialName);
+        
+    }
+
+    @Override
+    public void visit(DesignatorRepeatField designatorRepeatField){
+        logInfo(designatorRepeatField.getFieldName(), designatorRepeatField);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 }

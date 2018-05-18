@@ -100,7 +100,7 @@ terminal OP_L_PARENTHESES, OP_R_PARENTHESES, OP_L_SQUARED_PARENTHESES, OP_R_SQUA
 
 
 
-non terminal Program, ConstVarClassDeclList, ConstDecl, ConstDeclRepeatList, ConstDeclRepeat, NumCharBoolConst;
+non terminal Program, ConstVarClassDeclList, ConstDecl, ConstDeclRepeatList, ConstDeclRepeat;
 non terminal VarDecl, VarDeclList, VarDeclRepeatList, VarDeclRepeat, OptArrayDecl, Type, StatementList;
 non terminal ClassDecl, OptExtends, OptMethodDeclList;
 non terminal MethodDeclList, MethodDecl, ReturnType, OptFormPars;
@@ -110,15 +110,9 @@ non terminal FormPars, FormParsRepeatList, FormParsRepeat;
 non terminal Statement, OptElseStatement, DesignatorStatement, OptActPars, ActPars, ActParsRepeatList, ActParsRepeat;
 non terminal Condition, ConditionRepeatList, ConditionRepeat, CondTerm, CondFactRepeatList;
 non terminal CondFact, OptRelopExpr, Expr, OptMinus, AddopTermList, AddopTerm, Term, CondFactRepeat;
-non terminal MulopFactorList, MulopFactor, Factor, Designator, DesignatorRepeatList, DesignatorRepeat;
+non terminal MulopFactorList, MulopFactor, Factor;
 non terminal Relop, Addop, Mulop;
 non terminal ProgramName, ClassName;
-
-
-non terminal MethodTypeNameDeclaration;
-non terminal MethodDefinitionBegin;
-non terminal MethodDefinitionEnd;
-
 
 
 
@@ -135,6 +129,9 @@ non terminal DoWhileEnd;
 
 non terminal ClassDefinitionStart;
 non terminal ClassDefinitionEnd;
+
+non terminal rs.etf.pp1.symboltable.concepts.Obj Designator, DesignatorRepeatList, DesignatorRepeat;
+non terminal rs.etf.pp1.symboltable.concepts.Obj DesignatorInitialName;
 
 /*******************************************
 ********    Gramatika jezika    ************
@@ -184,7 +181,7 @@ ConstValue ::=      (NumConst)  NUM_CONST:numConst
 VarDecl ::= (VarDecl) Type VarDeclDefinition VarDeclRepeatList OP_SEMICOLN  ;
 
 
-VarDeclDefinition ::= (VarDeclDefinition) IDENTIFIKATOR:varName OptArrayDecl:isArray;
+VarDeclDefinition ::= (VarDeclDefinition) IDENTIFIKATOR:varName OptArrayDecl:isArray ;
 
 VarDeclList ::= (VarDeclListDeclared) VarDeclList VarDecl
             |   (VarDeclListEpsilon) /* epsilon */
@@ -194,7 +191,7 @@ VarDeclRepeatList ::= (VarDeclRepeatListDeclared) VarDeclRepeatList VarDeclRepea
                     | (VarDeclRepeatListEpsilon) /* epsilon */
                     ;
 
-VarDeclRepeat ::= (VarDeclRepeat) OP_COMMA VarDeclDefinition;
+VarDeclRepeat ::= (VarDeclRepeat) OP_COMMA VarDeclDefinition ;
 
 OptArrayDecl ::=  (OptArrayDeclared) OP_L_SQUARED_PARENTHESES OP_R_SQUARED_PARENTHESES
                 | (OptArrayDeclEpsilon)/* epsilon */
@@ -206,8 +203,8 @@ Type ::= (Type) IDENTIFIKATOR:typeName ;
 // deklaracija klase
 ClassDecl ::= (ClassDecl) CLASS ClassName:className OptExtends ClassDefinitionStart VarDeclList OptMethodDeclList ClassDefinitionEnd;
 
-ClassDefinitionStart ::= OP_L_BRACE_PARENTHESES;
-ClassDefinitionEnd ::= OP_R_BRACE_PARENTHESES;
+ClassDefinitionStart ::= (ClassDefinitionStart) OP_L_BRACE_PARENTHESES;
+ClassDefinitionEnd ::= (ClassDefinitionEnd) OP_R_BRACE_PARENTHESES;
 ClassName ::= (ClassName) IDENTIFIKATOR:className;
 
 
@@ -224,11 +221,7 @@ OptMethodDeclList ::= (OptMethodDeclListDeclared) OP_L_BRACE_PARENTHESES MethodD
 MethodDecl ::= (MethodDecl) ReturnType MethodName  OP_L_PARENTHESES OptFormPars OP_R_PARENTHESES VarDeclList OP_L_BRACE_PARENTHESES StatementList OP_R_BRACE_PARENTHESES;
 
 
-MethodTypeNameDeclaration ::= ReturnType MethodName
 
-MethodDefinitionBegin ::= OP_L_PARENTHESES;
-
-MethodDefinitionEnd ::= OP_R_PARENTHESES;
 
 MethodName ::= (MethodName) IDENTIFIKATOR:methodName;
 
@@ -347,9 +340,9 @@ OptParenthesesActPars ::= (OptParenthesesActParsDeclared) OP_L_PARENTHESES OptAc
                         | (OptParenthesesActParsEpsilon) /*epsilon*/
                         ;
 
-Designator ::= (Designator) IDENTIFIKATOR:designatorName DesignatorRepeatList ;
+Designator ::= (Designator) DesignatorInitialName DesignatorRepeatList ;
 
-
+DesignatorInitialName ::= (DesignatorInitialName) IDENTIFIKATOR:designatorName;
 
 DesignatorRepeatList ::= (DesignatorRepeatListDeclared)  DesignatorRepeatList DesignatorRepeat
                        | (DesignatorRepeatListEpsilon) /* epsilon */

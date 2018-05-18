@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 10/4/2018 19:54:57
+// 18/4/2018 3:41:45
 
 
 package ba140645d.mjcompiler.ast;
@@ -9,21 +9,24 @@ public class Designator implements SyntaxNode {
 
     private SyntaxNode parent;
     private int line;
-    private String designatorName;
+    public rs.etf.pp1.symboltable.concepts.Obj obj = null;
+
+    private DesignatorInitialName DesignatorInitialName;
     private DesignatorRepeatList DesignatorRepeatList;
 
-    public Designator (String designatorName, DesignatorRepeatList DesignatorRepeatList) {
-        this.designatorName=designatorName;
+    public Designator (DesignatorInitialName DesignatorInitialName, DesignatorRepeatList DesignatorRepeatList) {
+        this.DesignatorInitialName=DesignatorInitialName;
+        if(DesignatorInitialName!=null) DesignatorInitialName.setParent(this);
         this.DesignatorRepeatList=DesignatorRepeatList;
         if(DesignatorRepeatList!=null) DesignatorRepeatList.setParent(this);
     }
 
-    public String getDesignatorName() {
-        return designatorName;
+    public DesignatorInitialName getDesignatorInitialName() {
+        return DesignatorInitialName;
     }
 
-    public void setDesignatorName(String designatorName) {
-        this.designatorName=designatorName;
+    public void setDesignatorInitialName(DesignatorInitialName DesignatorInitialName) {
+        this.DesignatorInitialName=DesignatorInitialName;
     }
 
     public DesignatorRepeatList getDesignatorRepeatList() {
@@ -55,15 +58,18 @@ public class Designator implements SyntaxNode {
     }
 
     public void childrenAccept(Visitor visitor) {
+        if(DesignatorInitialName!=null) DesignatorInitialName.accept(visitor);
         if(DesignatorRepeatList!=null) DesignatorRepeatList.accept(visitor);
     }
 
     public void traverseTopDown(Visitor visitor) {
         accept(visitor);
+        if(DesignatorInitialName!=null) DesignatorInitialName.traverseTopDown(visitor);
         if(DesignatorRepeatList!=null) DesignatorRepeatList.traverseTopDown(visitor);
     }
 
     public void traverseBottomUp(Visitor visitor) {
+        if(DesignatorInitialName!=null) DesignatorInitialName.traverseBottomUp(visitor);
         if(DesignatorRepeatList!=null) DesignatorRepeatList.traverseBottomUp(visitor);
         accept(visitor);
     }
@@ -73,7 +79,10 @@ public class Designator implements SyntaxNode {
         buffer.append(tab);
         buffer.append("Designator(\n");
 
-        buffer.append(" "+tab+designatorName);
+        if(DesignatorInitialName!=null)
+            buffer.append(DesignatorInitialName.toString("  "+tab));
+        else
+            buffer.append(tab+"  null");
         buffer.append("\n");
 
         if(DesignatorRepeatList!=null)

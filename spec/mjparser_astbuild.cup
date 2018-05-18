@@ -105,7 +105,6 @@ nonterminal ConstVarClassDeclList ConstVarClassDeclList;
 nonterminal ConstDecl ConstDecl;
 nonterminal ConstDeclRepeatList ConstDeclRepeatList;
 nonterminal ConstDeclRepeat ConstDeclRepeat;
-nonterminal NumCharBoolConst NumCharBoolConst;
 non terminal VarDecl VarDecl;
 nonterminal VarDeclList VarDeclList;
 nonterminal VarDeclRepeatList VarDeclRepeatList;
@@ -148,15 +147,11 @@ nonterminal CondFactRepeat CondFactRepeat;
 non terminal MulopFactorList MulopFactorList;
 nonterminal MulopFactor MulopFactor;
 nonterminal Factor Factor;
-nonterminal Designator Designator;
-nonterminal DesignatorRepeatList DesignatorRepeatList;
-nonterminal DesignatorRepeat DesignatorRepeat;
 non terminal Relop Relop;
 nonterminal Addop Addop;
 nonterminal Mulop Mulop;
 non terminal ProgramName ProgramName;
 nonterminal ClassName ClassName;
-
 
 
 
@@ -177,6 +172,10 @@ non terminal DoWhileEnd DoWhileEnd;
 
 non terminal ClassDefinitionStart ClassDefinitionStart;
 non terminal ClassDefinitionEnd ClassDefinitionEnd;
+
+non terminal rs.etf.pp1.symboltable.concepts.Obj Designator, DesignatorRepeatList, DesignatorRepeat;
+non terminal rs.etf.pp1.symboltable.concepts.Obj DesignatorInitialName;
+
 /*******************************************
 ********    Gramatika jezika    ************
 ********************************************/
@@ -225,7 +224,7 @@ ConstValue ::=      (NumConst)  NUM_CONST:numConst {: RESULT=new NumConst(numCon
 VarDecl ::= (VarDecl) Type:T1 VarDeclDefinition:V2 VarDeclRepeatList:V3 OP_SEMICOLN {: RESULT=new VarDecl(T1, V2, V3); RESULT.setLine(T1left); :}  ;
 
 
-VarDeclDefinition ::= (VarDeclDefinition) IDENTIFIKATOR:varName OptArrayDecl:isArray {: RESULT=new VarDeclDefinition(varName, isArray); RESULT.setLine(varNameleft); :};
+VarDeclDefinition ::= (VarDeclDefinition) IDENTIFIKATOR:varName OptArrayDecl:isArray {: RESULT=new VarDeclDefinition(varName, isArray); RESULT.setLine(varNameleft); :} ;
 
 VarDeclList ::= (VarDeclListDeclared) VarDeclList:V1 VarDecl:V2 {: RESULT=new VarDeclListDeclared(V1, V2); RESULT.setLine(V1left); :}
             |   (VarDeclListEpsilon) {: RESULT=new VarDeclListEpsilon(); :} /* epsilon */
@@ -235,7 +234,7 @@ VarDeclRepeatList ::= (VarDeclRepeatListDeclared) VarDeclRepeatList:V1 VarDeclRe
                     | (VarDeclRepeatListEpsilon) {: RESULT=new VarDeclRepeatListEpsilon(); :} /* epsilon */
                     ;
 
-VarDeclRepeat ::= (VarDeclRepeat) OP_COMMA VarDeclDefinition:V1 {: RESULT=new VarDeclRepeat(V1); RESULT.setLine(V1left); :};
+VarDeclRepeat ::= (VarDeclRepeat) OP_COMMA VarDeclDefinition:V1 {: RESULT=new VarDeclRepeat(V1); RESULT.setLine(V1left); :} ;
 
 OptArrayDecl ::=  (OptArrayDeclared) OP_L_SQUARED_PARENTHESES OP_R_SQUARED_PARENTHESES {: RESULT=new OptArrayDeclared(); :}
                 | (OptArrayDeclEpsilon) {: RESULT=new OptArrayDeclEpsilon(); :}/* epsilon */
@@ -247,8 +246,8 @@ Type ::= (Type) IDENTIFIKATOR:typeName {: RESULT=new Type(typeName); RESULT.setL
 // deklaracija klase
 ClassDecl ::= (ClassDecl) CLASS ClassName:className OptExtends:O1 ClassDefinitionStart:C2 VarDeclList:V3 OptMethodDeclList:O4 ClassDefinitionEnd:C5 {: RESULT=new ClassDecl(className, O1, C2, V3, O4, C5); RESULT.setLine(classNameleft); :};
 
-ClassDefinitionStart ::= OP_L_BRACE_PARENTHESES {: RESULT=new ClassDefinitionStartDerived1(); :};
-ClassDefinitionEnd ::= OP_R_BRACE_PARENTHESES {: RESULT=new ClassDefinitionEndDerived1(); :};
+ClassDefinitionStart ::= (ClassDefinitionStart) OP_L_BRACE_PARENTHESES {: RESULT=new ClassDefinitionStart(); :};
+ClassDefinitionEnd ::= (ClassDefinitionEnd) OP_R_BRACE_PARENTHESES {: RESULT=new ClassDefinitionEnd(); :};
 ClassName ::= (ClassName) IDENTIFIKATOR:className {: RESULT=new ClassName(className); RESULT.setLine(classNameleft); :};
 
 
@@ -264,7 +263,10 @@ OptMethodDeclList ::= (OptMethodDeclListDeclared) OP_L_BRACE_PARENTHESES MethodD
 
 MethodDecl ::= (MethodDecl) ReturnType:R1 MethodName:M2  OP_L_PARENTHESES OptFormPars:O3 OP_R_PARENTHESES VarDeclList:V4 OP_L_BRACE_PARENTHESES StatementList:S5 OP_R_BRACE_PARENTHESES {: RESULT=new MethodDecl(R1, M2, O3, V4, S5); RESULT.setLine(R1left); :};
 
-MethodName ::= (MethodName) IDENTIFIKATOR:methodName {: RESULT=new MethodName(methodName); RESULT.setLine(methodNameleft); :} ;
+
+
+
+MethodName ::= (MethodName) IDENTIFIKATOR:methodName {: RESULT=new MethodName(methodName); RESULT.setLine(methodNameleft); :};
 
 ReturnType ::= (ReturnNonVoid) Type:T1 {: RESULT=new ReturnNonVoid(T1); RESULT.setLine(T1left); :} | (ReturnTypeVoid) VOID {: RESULT=new ReturnTypeVoid(); :};
 
@@ -381,9 +383,9 @@ OptParenthesesActPars ::= (OptParenthesesActParsDeclared) OP_L_PARENTHESES OptAc
                         | (OptParenthesesActParsEpsilon) {: RESULT=new OptParenthesesActParsEpsilon(); :} /*epsilon*/
                         ;
 
-Designator ::= (Designator) IDENTIFIKATOR:designatorName DesignatorRepeatList:D1 {: RESULT=new Designator(designatorName, D1); RESULT.setLine(designatorNameleft); :} ;
+Designator ::= (Designator) DesignatorInitialName:D1 DesignatorRepeatList:D2 {: RESULT=new Designator(D1, D2); RESULT.setLine(D1left); :} ;
 
-
+DesignatorInitialName ::= (DesignatorInitialName) IDENTIFIKATOR:designatorName {: RESULT=new DesignatorInitialName(designatorName); RESULT.setLine(designatorNameleft); :};
 
 DesignatorRepeatList ::= (DesignatorRepeatListDeclared)  DesignatorRepeatList:D1 DesignatorRepeat:D2 {: RESULT=new DesignatorRepeatListDeclared(D1, D2); RESULT.setLine(D1left); :}
                        | (DesignatorRepeatListEpsilon) {: RESULT=new DesignatorRepeatListEpsilon(); :} /* epsilon */

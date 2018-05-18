@@ -3,7 +3,12 @@ const int size = 10;
 const bool isTrue = true;
 const char robi = "R";
 char lent;
+const bool intBool = true;
 int arr[];
 {
-
+    bool main(int k[], char c[])
+    int x, y;
+    {
+        x.y.z();
+    }
 }

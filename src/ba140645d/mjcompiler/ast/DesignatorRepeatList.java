@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 10/4/2018 19:54:58
+// 18/4/2018 3:41:45
 
 
 package ba140645d.mjcompiler.ast;
@@ -10,6 +10,8 @@ public abstract class DesignatorRepeatList implements SyntaxNode {
     private SyntaxNode parent;
 
     private int line;
+
+    public rs.etf.pp1.symboltable.concepts.Obj obj = null;
 
     public SyntaxNode getParent() {
         return parent;

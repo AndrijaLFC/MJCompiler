@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 10/4/2018 19:54:58
+// 18/4/2018 3:41:45
 
 
 package ba140645d.mjcompiler.ast;
@@ -27,14 +27,11 @@ public interface Visitor {
     public void visit(OptExtends OptExtends);
     public void visit(CondFactRepeatList CondFactRepeatList);
     public void visit(ConstValue ConstValue);
-    public void visit(ClassDefinitionStart ClassDefinitionStart);
-    public void visit(NumCharBoolConst NumCharBoolConst);
     public void visit(OptElseStatement OptElseStatement);
     public void visit(VarDeclList VarDeclList);
     public void visit(OptArrExpr OptArrExpr);
     public void visit(ConstVarClassDeclList ConstVarClassDeclList);
     public void visit(DesignatorStatement DesignatorStatement);
-    public void visit(ClassDefinitionEnd ClassDefinitionEnd);
     public void visit(DesignatorRepeat DesignatorRepeat);
     public void visit(OptMethodDeclList OptMethodDeclList);
     public void visit(Statement Statement);
@@ -59,6 +56,7 @@ public interface Visitor {
     public void visit(DesignatorRepeatField DesignatorRepeatField);
     public void visit(DesignatorRepeatListEpsilon DesignatorRepeatListEpsilon);
     public void visit(DesignatorRepeatListDeclared DesignatorRepeatListDeclared);
+    public void visit(DesignatorInitialName DesignatorInitialName);
     public void visit(Designator Designator);
     public void visit(OptParenthesesActParsEpsilon OptParenthesesActParsEpsilon);
     public void visit(OptParenthesesActParsDeclared OptParenthesesActParsDeclared);
@@ -137,8 +135,8 @@ public interface Visitor {
     public void visit(OptExtendsEpsilon OptExtendsEpsilon);
     public void visit(OptExtendsExtended OptExtendsExtended);
     public void visit(ClassName ClassName);
-    public void visit(ClassDefinitionEndDerived1 ClassDefinitionEndDerived1);
-    public void visit(ClassDefinitionStartDerived1 ClassDefinitionStartDerived1);
+    public void visit(ClassDefinitionEnd ClassDefinitionEnd);
+    public void visit(ClassDefinitionStart ClassDefinitionStart);
     public void visit(ClassDecl ClassDecl);
     public void visit(Type Type);
     public void visit(OptArrayDeclEpsilon OptArrayDeclEpsilon);

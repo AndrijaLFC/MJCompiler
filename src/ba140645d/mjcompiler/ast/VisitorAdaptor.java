@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 10/4/2018 19:54:58
+// 18/4/2018 3:41:45
 
 
 package ba140645d.mjcompiler.ast;
@@ -27,14 +27,11 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(OptExtends OptExtends) { }
     public void visit(CondFactRepeatList CondFactRepeatList) { }
     public void visit(ConstValue ConstValue) { }
-    public void visit(ClassDefinitionStart ClassDefinitionStart) { }
-    public void visit(NumCharBoolConst NumCharBoolConst) { }
     public void visit(OptElseStatement OptElseStatement) { }
     public void visit(VarDeclList VarDeclList) { }
     public void visit(OptArrExpr OptArrExpr) { }
     public void visit(ConstVarClassDeclList ConstVarClassDeclList) { }
     public void visit(DesignatorStatement DesignatorStatement) { }
-    public void visit(ClassDefinitionEnd ClassDefinitionEnd) { }
     public void visit(DesignatorRepeat DesignatorRepeat) { }
     public void visit(OptMethodDeclList OptMethodDeclList) { }
     public void visit(Statement Statement) { }
@@ -59,6 +56,7 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(DesignatorRepeatField DesignatorRepeatField) { visit(); }
     public void visit(DesignatorRepeatListEpsilon DesignatorRepeatListEpsilon) { visit(); }
     public void visit(DesignatorRepeatListDeclared DesignatorRepeatListDeclared) { visit(); }
+    public void visit(DesignatorInitialName DesignatorInitialName) { visit(); }
     public void visit(Designator Designator) { visit(); }
     public void visit(OptParenthesesActParsEpsilon OptParenthesesActParsEpsilon) { visit(); }
     public void visit(OptParenthesesActParsDeclared OptParenthesesActParsDeclared) { visit(); }
@@ -137,8 +135,8 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(OptExtendsEpsilon OptExtendsEpsilon) { visit(); }
     public void visit(OptExtendsExtended OptExtendsExtended) { visit(); }
     public void visit(ClassName ClassName) { visit(); }
-    public void visit(ClassDefinitionEndDerived1 ClassDefinitionEndDerived1) { visit(); }
-    public void visit(ClassDefinitionStartDerived1 ClassDefinitionStartDerived1) { visit(); }
+    public void visit(ClassDefinitionEnd ClassDefinitionEnd) { visit(); }
+    public void visit(ClassDefinitionStart ClassDefinitionStart) { visit(); }
     public void visit(ClassDecl ClassDecl) { visit(); }
     public void visit(Type Type) { visit(); }
     public void visit(OptArrayDeclEpsilon OptArrayDeclEpsilon) { visit(); }

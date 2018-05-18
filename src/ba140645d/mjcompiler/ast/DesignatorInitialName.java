@@ -1,15 +1,28 @@
 // generated with ast extension for cup
 // version 0.8
-// 18/4/2018 3:41:44
+// 18/4/2018 3:41:45
 
 
 package ba140645d.mjcompiler.ast;
 
-public class DoWhileEnd implements SyntaxNode {
+public class DesignatorInitialName implements SyntaxNode {
 
     private SyntaxNode parent;
     private int line;
-    public DoWhileEnd () {
+    public rs.etf.pp1.symboltable.concepts.Obj obj = null;
+
+    private String designatorName;
+
+    public DesignatorInitialName (String designatorName) {
+        this.designatorName=designatorName;
+    }
+
+    public String getDesignatorName() {
+        return designatorName;
+    }
+
+    public void setDesignatorName(String designatorName) {
+        this.designatorName=designatorName;
     }
 
     public SyntaxNode getParent() {
@@ -46,10 +59,13 @@ public class DoWhileEnd implements SyntaxNode {
     public String toString(String tab) {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
-        buffer.append("DoWhileEnd(\n");
+        buffer.append("DesignatorInitialName(\n");
+
+        buffer.append(" "+tab+designatorName);
+        buffer.append("\n");
 
         buffer.append(tab);
-        buffer.append(") [DoWhileEnd]");
+        buffer.append(") [DesignatorInitialName]");
         return buffer.toString();
     }
 }
