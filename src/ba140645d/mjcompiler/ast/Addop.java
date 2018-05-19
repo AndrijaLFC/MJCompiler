@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 18/4/2018 3:41:45
+// 18/4/2018 18:2:52
 
 
 package ba140645d.mjcompiler.ast;
@@ -10,6 +10,8 @@ public abstract class Addop implements SyntaxNode {
     private SyntaxNode parent;
 
     private int line;
+
+    public rs.etf.pp1.symboltable.concepts.Struct struct = null;
 
     public SyntaxNode getParent() {
         return parent;

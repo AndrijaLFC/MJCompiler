@@ -138,18 +138,11 @@ nonterminal CondTerm CondTerm;
 nonterminal CondFactRepeatList CondFactRepeatList;
 non terminal CondFact CondFact;
 nonterminal OptRelopExpr OptRelopExpr;
-nonterminal Expr Expr;
 nonterminal OptMinus OptMinus;
-nonterminal AddopTermList AddopTermList;
-nonterminal AddopTerm AddopTerm;
-nonterminal Term Term;
 nonterminal CondFactRepeat CondFactRepeat;
-non terminal MulopFactorList MulopFactorList;
-nonterminal MulopFactor MulopFactor;
-nonterminal Factor Factor;
+//non terminal MulopFactorList, MulopFactor, Factor;
 non terminal Relop Relop;
-nonterminal Addop Addop;
-nonterminal Mulop Mulop;
+//non terminal Addop, Mulop;
 non terminal ProgramName ProgramName;
 nonterminal ClassName ClassName;
 
@@ -175,6 +168,13 @@ non terminal ClassDefinitionEnd ClassDefinitionEnd;
 
 non terminal rs.etf.pp1.symboltable.concepts.Obj Designator, DesignatorRepeatList, DesignatorRepeat;
 non terminal rs.etf.pp1.symboltable.concepts.Obj DesignatorInitialName;
+
+
+non terminal rs.etf.pp1.symboltable.concepts.Struct Expr, Term, AddopTermList;
+non terminal rs.etf.pp1.symboltable.concepts.Struct Factor, MulopFactorList;
+non terminal rs.etf.pp1.symboltable.concepts.Struct MulopFactor;
+non terminal rs.etf.pp1.symboltable.concepts.Struct Mulop;
+non terminal rs.etf.pp1.symboltable.concepts.Struct AddopTerm, Addop;
 
 /*******************************************
 ********    Gramatika jezika    ************
@@ -255,10 +255,12 @@ OptExtends ::= (OptExtendsExtended) EXTENDS Type:typeName {: RESULT=new OptExten
 
 // deklaracija metoda
 MethodDeclList ::= (MethodDeclListDeclared) MethodDeclList:M1  MethodDecl:M2 {: RESULT=new MethodDeclListDeclared(M1, M2); RESULT.setLine(M1left); :}
-                |  (MethodDeclListEpsilon) {: RESULT=new MethodDeclListEpsilon(); :} /* epsilon */ ;
+                |  (MethodDeclListEpsilon) {: RESULT=new MethodDeclListEpsilon(); :} /* epsilon */
+                ;
 
 OptMethodDeclList ::= (OptMethodDeclListDeclared) OP_L_BRACE_PARENTHESES MethodDeclList:M1 OP_R_BRACE_PARENTHESES {: RESULT=new OptMethodDeclListDeclared(M1); RESULT.setLine(M1left); :}
-                    | (OptMethodDeclListEpsilon) {: RESULT=new OptMethodDeclListEpsilon(); :} /* epsilon */ ;
+                    | (OptMethodDeclListEpsilon) {: RESULT=new OptMethodDeclListEpsilon(); :} /* epsilon */
+                    ;
 
 
 MethodDecl ::= (MethodDecl) ReturnType:R1 MethodName:M2  OP_L_PARENTHESES OptFormPars:O3 OP_R_PARENTHESES VarDeclList:V4 OP_L_BRACE_PARENTHESES StatementList:S5 OP_R_BRACE_PARENTHESES {: RESULT=new MethodDecl(R1, M2, O3, V4, S5); RESULT.setLine(R1left); :};
@@ -281,7 +283,8 @@ FormPars ::= (FormPars) FormParDecl:F1 FormParsRepeatList:F2 {: RESULT=new FormP
 FormParDecl ::= (FormParDecl) Type:formParType IDENTIFIKATOR:formParName OptArrayDecl:O1 {: RESULT=new FormParDecl(formParType, formParName, O1); RESULT.setLine(formParTypeleft); :};
 
 FormParsRepeatList ::= (FormParsRepeatListDeclared) FormParsRepeatList:F1 FormParsRepeat:F2 {: RESULT=new FormParsRepeatListDeclared(F1, F2); RESULT.setLine(F1left); :}
-                    |  (FormParsRepeatListEpsilon) {: RESULT=new FormParsRepeatListEpsilon(); :}/* epsilon */ ;
+                    |  (FormParsRepeatListEpsilon) {: RESULT=new FormParsRepeatListEpsilon(); :}/* epsilon */
+                    ;
 FormParsRepeat ::= (FormParsRepeat) OP_COMMA FormParDecl:F1 {: RESULT=new FormParsRepeat(F1); RESULT.setLine(F1left); :} ;
 
 
@@ -307,12 +310,14 @@ DoWhileBegin ::= (DoWhileBegin) DO {: RESULT=new DoWhileBegin(); :} ;
 DoWhileEnd ::= (DoWhileEnd) WHILE {: RESULT=new DoWhileEnd(); :} ;
 
 OptPrintNumConst ::=  (OptPrintNumConstDeclared) OP_COMMA NUM_CONST:N1 {: RESULT=new OptPrintNumConstDeclared(N1); RESULT.setLine(N1left); :}
-                    | (OptPrintNumConstEpsilon) {: RESULT=new OptPrintNumConstEpsilon(); :} /*epsilon*/ ;
+                    | (OptPrintNumConstEpsilon) {: RESULT=new OptPrintNumConstEpsilon(); :} /*epsilon*/
+                    ;
 
 OptExpr ::= (OptExprDeclared) Expr:E1 {: RESULT=new OptExprDeclared(E1); RESULT.setLine(E1left); :} | (OptExprEpsilon) {: RESULT=new OptExprEpsilon(); :} /*epsilon*/ ;
 
 OptElseStatement ::=  (OptElseStatementDeclared) ELSE Statement:S1 {: RESULT=new OptElseStatementDeclared(S1); RESULT.setLine(S1left); :}
-                    | (OptElseStatementEpsilon) {: RESULT=new OptElseStatementEpsilon(); :}/* epsilon */ ;
+                    | (OptElseStatementEpsilon) {: RESULT=new OptElseStatementEpsilon(); :}/* epsilon */
+                     ;
 
 DesignatorStatement ::=     (DesignatorStatementAssign)     Designator:D1 OP_EQUAL Expr:E2 {: RESULT=new DesignatorStatementAssign(D1, E2); RESULT.setLine(D1left); :}
                         |   (DesignatorStatementActualPars) Designator:D1 OP_L_PARENTHESES OptActPars:O2 OP_R_PARENTHESES {: RESULT=new DesignatorStatementActualPars(D1, O2); RESULT.setLine(D1left); :}
@@ -325,7 +330,8 @@ OptActPars ::= (OptActParsDeclared) ActPars:A1 {: RESULT=new OptActParsDeclared(
 ActPars ::= (ActPars) Expr:E1 ActParsRepeatList:A2 {: RESULT=new ActPars(E1, A2); RESULT.setLine(E1left); :} ;
 
 ActParsRepeatList ::= (ActParsRepeatListDeclared) ActParsRepeatList:A1 ActParsRepeat:A2 {: RESULT=new ActParsRepeatListDeclared(A1, A2); RESULT.setLine(A1left); :}
-                    | (ActParsRepeatListEpsilon) {: RESULT=new ActParsRepeatListEpsilon(); :} /* epsilon */ ;
+                    | (ActParsRepeatListEpsilon) {: RESULT=new ActParsRepeatListEpsilon(); :} /* epsilon */
+                    ;
 
 ActParsRepeat ::= (ActParsRepeat) OP_COMMA Expr:E1 {: RESULT=new ActParsRepeat(E1); RESULT.setLine(E1left); :} ;
 
@@ -349,15 +355,18 @@ CondFactRepeat ::= (CondFactRepeat) OP_LOGIC_AND CondFact:C1 {: RESULT=new CondF
 CondFact ::= (CondFact) Expr:E1 OptRelopExpr:O2 {: RESULT=new CondFact(E1, O2); RESULT.setLine(E1left); :};
 
 OptRelopExpr ::=  (OptRelopExprDeclared) Relop:R1 Expr:E2 {: RESULT=new OptRelopExprDeclared(R1, E2); RESULT.setLine(R1left); :}
-                | (OptRelopExprEpsilon) {: RESULT=new OptRelopExprEpsilon(); :} /* epsilon */ ;
+                | (OptRelopExprEpsilon) {: RESULT=new OptRelopExprEpsilon(); :} /* epsilon */
+                ;
 
 
 Expr ::= (Expr) OptMinus:O1 Term:T2 AddopTermList:A3 {: RESULT=new Expr(O1, T2, A3); RESULT.setLine(O1left); :} ;
 OptMinus ::=    (OptMinusDeclared) OP_SUBTRACTION {: RESULT=new OptMinusDeclared(); :}
-            |   (OptMinusEpsilon) {: RESULT=new OptMinusEpsilon(); :} /* epsilon */ ;
+            |   (OptMinusEpsilon) {: RESULT=new OptMinusEpsilon(); :} /* epsilon */
+            ;
 
 AddopTermList ::= (AddopTermListDeclared) AddopTermList:A1 AddopTerm:A2 {: RESULT=new AddopTermListDeclared(A1, A2); RESULT.setLine(A1left); :}
-                | (AddopTermListEpsilon) {: RESULT=new AddopTermListEpsilon(); :} /*epsilon*/;
+                | (AddopTermListEpsilon) {: RESULT=new AddopTermListEpsilon(); :} /*epsilon*/
+                ;
 
 AddopTerm ::= (AddopTerm) Addop:A1 Term:T2 {: RESULT=new AddopTerm(A1, T2); RESULT.setLine(A1left); :} ;
 
@@ -365,11 +374,12 @@ AddopTerm ::= (AddopTerm) Addop:A1 Term:T2 {: RESULT=new AddopTerm(A1, T2); RESU
 Term ::= (Term) Factor:F1 MulopFactorList:M2 {: RESULT=new Term(F1, M2); RESULT.setLine(F1left); :} ;
 
 MulopFactorList ::= (MulopFactorListDeclared) MulopFactorList:M1 MulopFactor:M2 {: RESULT=new MulopFactorListDeclared(M1, M2); RESULT.setLine(M1left); :}
-                |   (MulopFactorListEpsilon) {: RESULT=new MulopFactorListEpsilon(); :} /* epsilon */ ;
+                |   (MulopFactorListEpsilon) {: RESULT=new MulopFactorListEpsilon(); :} /* epsilon */
+                ;
 
 MulopFactor ::= (MulopFactor) Mulop:M1 Factor:F2 {: RESULT=new MulopFactor(M1, F2); RESULT.setLine(M1left); :} ;
 
-Factor ::=      (FactorFuncCal)   Designator:D1 OptParenthesesActPars:O2 {: RESULT=new FactorFuncCal(D1, O2); RESULT.setLine(D1left); :}
+Factor ::=      (FactorFuncCallOrVar)   Designator:D1 OptParenthesesActPars:O2 {: RESULT=new FactorFuncCallOrVar(D1, O2); RESULT.setLine(D1left); :}
             |   (FactorConst)     ConstValue:C1 {: RESULT=new FactorConst(C1); RESULT.setLine(C1left); :}
             |   (FactorNew)       NEW Type:T1 OptArrExpr:O2 {: RESULT=new FactorNew(T1, O2); RESULT.setLine(T1left); :}
             |   (FactorExpr)      OP_L_PARENTHESES Expr:E1 OP_R_PARENTHESES {: RESULT=new FactorExpr(E1); RESULT.setLine(E1left); :}

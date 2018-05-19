@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 18/4/2018 3:41:45
+// 18/4/2018 18:2:52
 
 
 package ba140645d.mjcompiler.ast;
@@ -11,8 +11,8 @@ public interface Visitor {
     public void visit(ReturnType ReturnType);
     public void visit(ConditionRepeatList ConditionRepeatList);
     public void visit(FormParsRepeatList FormParsRepeatList);
-    public void visit(OptPrintNumConst OptPrintNumConst);
     public void visit(Mulop Mulop);
+    public void visit(OptPrintNumConst OptPrintNumConst);
     public void visit(OptParenthesesActPars OptParenthesesActPars);
     public void visit(Relop Relop);
     public void visit(MulopFactorList MulopFactorList);
@@ -65,7 +65,7 @@ public interface Visitor {
     public void visit(FactorExpr FactorExpr);
     public void visit(FactorNew FactorNew);
     public void visit(FactorConst FactorConst);
-    public void visit(FactorFuncCal FactorFuncCal);
+    public void visit(FactorFuncCallOrVar FactorFuncCallOrVar);
     public void visit(MulopFactor MulopFactor);
     public void visit(MulopFactorListEpsilon MulopFactorListEpsilon);
     public void visit(MulopFactorListDeclared MulopFactorListDeclared);

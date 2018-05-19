@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 18/4/2018 3:41:44
+// 18/4/2018 18:2:51
 
 
 package ba140645d.mjcompiler.ast;
@@ -9,6 +9,8 @@ public class Expr implements SyntaxNode {
 
     private SyntaxNode parent;
     private int line;
+    public rs.etf.pp1.symboltable.concepts.Struct struct = null;
+
     private OptMinus OptMinus;
     private Term Term;
     private AddopTermList AddopTermList;

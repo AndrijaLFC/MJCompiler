@@ -6,9 +6,9 @@ char lent;
 const bool intBool = true;
 int arr[];
 {
-    bool main(int k[], char c[])
-    int x, y;
-    {
-        x.y.z();
-    }
+        bool main(int k[], char c[])
+        int x, y;
+        {
+            x = x +  size * size;
+        }
 }

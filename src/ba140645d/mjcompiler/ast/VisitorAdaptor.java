@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 18/4/2018 3:41:45
+// 18/4/2018 18:2:52
 
 
 package ba140645d.mjcompiler.ast;
@@ -11,8 +11,8 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(ReturnType ReturnType) { }
     public void visit(ConditionRepeatList ConditionRepeatList) { }
     public void visit(FormParsRepeatList FormParsRepeatList) { }
-    public void visit(OptPrintNumConst OptPrintNumConst) { }
     public void visit(Mulop Mulop) { }
+    public void visit(OptPrintNumConst OptPrintNumConst) { }
     public void visit(OptParenthesesActPars OptParenthesesActPars) { }
     public void visit(Relop Relop) { }
     public void visit(MulopFactorList MulopFactorList) { }
@@ -65,7 +65,7 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(FactorExpr FactorExpr) { visit(); }
     public void visit(FactorNew FactorNew) { visit(); }
     public void visit(FactorConst FactorConst) { visit(); }
-    public void visit(FactorFuncCal FactorFuncCal) { visit(); }
+    public void visit(FactorFuncCallOrVar FactorFuncCallOrVar) { visit(); }
     public void visit(MulopFactor MulopFactor) { visit(); }
     public void visit(MulopFactorListEpsilon MulopFactorListEpsilon) { visit(); }
     public void visit(MulopFactorListDeclared MulopFactorListDeclared) { visit(); }

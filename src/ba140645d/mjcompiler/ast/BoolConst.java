@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 18/4/2018 3:41:43
+// 18/4/2018 18:2:50
 
 
 package ba140645d.mjcompiler.ast;
@@ -25,8 +25,7 @@ public class BoolConst extends ConstValue {
         visitor.visit(this);
     }
 
-    public void childrenAccept(Visitor visitor) {
-
+    public void childrenAccept(Visitor visitor){
     }
 
     public void traverseTopDown(Visitor visitor) {
@@ -41,7 +40,6 @@ public class BoolConst extends ConstValue {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
         buffer.append("BoolConst(\n");
-
 
         buffer.append("\n");
 
