@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 18/4/2018 18:2:52
+// 19/4/2018 17:58:4
 
 
 package ba140645d.mjcompiler.ast;
@@ -10,6 +10,8 @@ public abstract class OptParenthesesActPars implements SyntaxNode {
     private SyntaxNode parent;
 
     private int line;
+
+    public ba140645d.mjcompiler.utilities.StructLinkedList structlinkedlist = null;
 
     public SyntaxNode getParent() {
         return parent;

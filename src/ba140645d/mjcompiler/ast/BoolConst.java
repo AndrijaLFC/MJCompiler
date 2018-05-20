@@ -1,23 +1,23 @@
 // generated with ast extension for cup
 // version 0.8
-// 18/4/2018 18:2:50
+// 19/4/2018 17:58:2
 
 
 package ba140645d.mjcompiler.ast;
 
 public class BoolConst extends ConstValue {
 
-    private Boolean boolConst;
+    private java.lang.Boolean boolConst;
 
-    public BoolConst (Boolean boolConst) {
+    public BoolConst (java.lang.Boolean boolConst) {
         this.boolConst=boolConst;
     }
 
-    public Boolean getBoolConst() {
+    public java.lang.Boolean getBoolConst() {
         return boolConst;
     }
 
-    public void setBoolConst(Boolean boolConst) {
+    public void setBoolConst(java.lang.Boolean boolConst) {
         this.boolConst=boolConst;
     }
 
@@ -25,7 +25,7 @@ public class BoolConst extends ConstValue {
         visitor.visit(this);
     }
 
-    public void childrenAccept(Visitor visitor){
+    public void childrenAccept(Visitor visitor) {
     }
 
     public void traverseTopDown(Visitor visitor) {

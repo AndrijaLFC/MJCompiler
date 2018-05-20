@@ -6,9 +6,15 @@ char lent;
 const bool intBool = true;
 int arr[];
 {
+        int helou(int c, int ck, int ckk)
+        {
+
+        }
+
         bool main(int k[], char c[])
         int x, y;
         {
-            x = x +  size * size;
+            x = x + helou(size, size, size + size*size);
         }
+
 }

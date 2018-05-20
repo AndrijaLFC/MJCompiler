@@ -73,7 +73,7 @@ terminal String IDENTIFIKATOR ;
 // konstante
 terminal Integer NUM_CONST;
 terminal Character CHAR_CONST;
-terminal Boolean BOOL_CONST;
+terminal java.lang.Boolean BOOL_CONST;
 
 // Addop operatori
 terminal OP_ADDITION, OP_SUBTRACTION ;
@@ -107,7 +107,7 @@ non terminal MethodDeclList, MethodDecl, ReturnType, OptFormPars;
 non terminal FormPars, FormParsRepeatList, FormParsRepeat;
 
 
-non terminal Statement, OptElseStatement, DesignatorStatement, OptActPars, ActPars, ActParsRepeatList, ActParsRepeat;
+non terminal Statement, OptElseStatement, DesignatorStatement;
 non terminal Condition, ConditionRepeatList, ConditionRepeat, CondTerm, CondFactRepeatList;
 non terminal CondFact, OptRelopExpr, OptMinus, CondFactRepeat;
 //non terminal MulopFactorList, MulopFactor, Factor;
@@ -117,7 +117,7 @@ non terminal ProgramName, ClassName;
 
 
 
-non terminal OptExpr, OptPrintNumConst, OptParenthesesActPars, OptArrExpr, ConstDefinition;
+non terminal OptExpr, OptPrintNumConst,  OptArrExpr, ConstDefinition;
 non terminal VarDeclDefinition;
 
 non terminal MethodName ;
@@ -134,6 +134,11 @@ non terminal ClassDefinitionEnd;
 non terminal rs.etf.pp1.symboltable.concepts.Obj Designator, DesignatorRepeatList, DesignatorRepeat;
 non terminal rs.etf.pp1.symboltable.concepts.Obj DesignatorInitialName;
 
+non terminal ba140645d.mjcompiler.utilities.StructLinkedList OptParenthesesActPars;
+non terminal ba140645d.mjcompiler.utilities.StructLinkedList ActPars;
+non terminal ba140645d.mjcompiler.utilities.StructLinkedList ActParsRepeatList;
+non terminal ba140645d.mjcompiler.utilities.StructLinkedList OptActPars;
+non terminal rs.etf.pp1.symboltable.concepts.Struct ActParsRepeat;
 
 non terminal rs.etf.pp1.symboltable.concepts.Struct Expr, Term, AddopTermList;
 non terminal rs.etf.pp1.symboltable.concepts.Struct Factor, MulopFactorList;
@@ -323,8 +328,9 @@ OptRelopExpr ::=  (OptRelopExprDeclared) Relop Expr
                 | (OptRelopExprEpsilon) /* epsilon */
                 ;
 
-
+// gramatika izraza
 Expr ::= (Expr) OptMinus Term AddopTermList ;
+
 OptMinus ::=    (OptMinusDeclared) OP_SUBTRACTION
             |   (OptMinusEpsilon) /* epsilon */
             ;

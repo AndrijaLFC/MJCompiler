@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 18/4/2018 18:2:51
+// 19/4/2018 17:58:3
 
 
 package ba140645d.mjcompiler.ast;
@@ -9,6 +9,8 @@ public class ActPars implements SyntaxNode {
 
     private SyntaxNode parent;
     private int line;
+    public ba140645d.mjcompiler.utilities.StructLinkedList structlinkedlist = null;
+
     private Expr Expr;
     private ActParsRepeatList ActParsRepeatList;
 

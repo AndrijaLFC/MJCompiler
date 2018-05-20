@@ -73,7 +73,7 @@ terminal String IDENTIFIKATOR ;
 // konstante
 terminal Integer NUM_CONST;
 terminal Character CHAR_CONST;
-terminal Boolean BOOL_CONST;
+terminal java.lang.Boolean BOOL_CONST;
 
 // Addop operatori
 terminal OP_ADDITION, OP_SUBTRACTION ;
@@ -127,10 +127,6 @@ nonterminal FormParsRepeat FormParsRepeat;
 non terminal Statement Statement;
 nonterminal OptElseStatement OptElseStatement;
 nonterminal DesignatorStatement DesignatorStatement;
-nonterminal OptActPars OptActPars;
-nonterminal ActPars ActPars;
-nonterminal ActParsRepeatList ActParsRepeatList;
-nonterminal ActParsRepeat ActParsRepeat;
 non terminal Condition Condition;
 nonterminal ConditionRepeatList ConditionRepeatList;
 nonterminal ConditionRepeat ConditionRepeat;
@@ -150,8 +146,7 @@ nonterminal ClassName ClassName;
 
 non terminal OptExpr OptExpr;
 nonterminal OptPrintNumConst OptPrintNumConst;
-nonterminal OptParenthesesActPars OptParenthesesActPars;
-nonterminal OptArrExpr OptArrExpr;
+nonterminal  OptArrExpr OptArrExpr;
 nonterminal ConstDefinition ConstDefinition;
 non terminal VarDeclDefinition VarDeclDefinition;
 
@@ -169,6 +164,11 @@ non terminal ClassDefinitionEnd ClassDefinitionEnd;
 non terminal rs.etf.pp1.symboltable.concepts.Obj Designator, DesignatorRepeatList, DesignatorRepeat;
 non terminal rs.etf.pp1.symboltable.concepts.Obj DesignatorInitialName;
 
+non terminal ba140645d.mjcompiler.utilities.StructLinkedList OptParenthesesActPars;
+non terminal ba140645d.mjcompiler.utilities.StructLinkedList ActPars;
+non terminal ba140645d.mjcompiler.utilities.StructLinkedList ActParsRepeatList;
+non terminal ba140645d.mjcompiler.utilities.StructLinkedList OptActPars;
+non terminal rs.etf.pp1.symboltable.concepts.Struct ActParsRepeat;
 
 non terminal rs.etf.pp1.symboltable.concepts.Struct Expr, Term, AddopTermList;
 non terminal rs.etf.pp1.symboltable.concepts.Struct Factor, MulopFactorList;
@@ -358,8 +358,9 @@ OptRelopExpr ::=  (OptRelopExprDeclared) Relop:R1 Expr:E2 {: RESULT=new OptRelop
                 | (OptRelopExprEpsilon) {: RESULT=new OptRelopExprEpsilon(); :} /* epsilon */
                 ;
 
-
+// gramatika izraza
 Expr ::= (Expr) OptMinus:O1 Term:T2 AddopTermList:A3 {: RESULT=new Expr(O1, T2, A3); RESULT.setLine(O1left); :} ;
+
 OptMinus ::=    (OptMinusDeclared) OP_SUBTRACTION {: RESULT=new OptMinusDeclared(); :}
             |   (OptMinusEpsilon) {: RESULT=new OptMinusEpsilon(); :} /* epsilon */
             ;
@@ -380,9 +381,9 @@ MulopFactorList ::= (MulopFactorListDeclared) MulopFactorList:M1 MulopFactor:M2 
 MulopFactor ::= (MulopFactor) Mulop:M1 Factor:F2 {: RESULT=new MulopFactor(M1, F2); RESULT.setLine(M1left); :} ;
 
 Factor ::=      (FactorFuncCallOrVar)   Designator:D1 OptParenthesesActPars:O2 {: RESULT=new FactorFuncCallOrVar(D1, O2); RESULT.setLine(D1left); :}
-            |   (FactorConst)     ConstValue:C1 {: RESULT=new FactorConst(C1); RESULT.setLine(C1left); :}
-            |   (FactorNew)       NEW Type:T1 OptArrExpr:O2 {: RESULT=new FactorNew(T1, O2); RESULT.setLine(T1left); :}
-            |   (FactorExpr)      OP_L_PARENTHESES Expr:E1 OP_R_PARENTHESES {: RESULT=new FactorExpr(E1); RESULT.setLine(E1left); :}
+            |   (FactorConst)           ConstValue:C1 {: RESULT=new FactorConst(C1); RESULT.setLine(C1left); :}
+            |   (FactorNew)             NEW Type:T1 OptArrExpr:O2 {: RESULT=new FactorNew(T1, O2); RESULT.setLine(T1left); :}
+            |   (FactorExpr)            OP_L_PARENTHESES Expr:E1 OP_R_PARENTHESES {: RESULT=new FactorExpr(E1); RESULT.setLine(E1left); :}
             ;
 
 OptArrExpr ::= (OptArrExprDeclared) OP_L_SQUARED_PARENTHESES Expr:E1 OP_R_SQUARED_PARENTHESES {: RESULT=new OptArrExprDeclared(E1); RESULT.setLine(E1left); :}

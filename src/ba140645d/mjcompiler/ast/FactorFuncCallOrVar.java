@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 18/4/2018 18:2:51
+// 19/4/2018 17:58:3
 
 
 package ba140645d.mjcompiler.ast;
@@ -10,7 +10,7 @@ public class FactorFuncCallOrVar extends Factor {
     private Designator Designator;
     private OptParenthesesActPars OptParenthesesActPars;
 
-    public FactorFuncCallOrVar(Designator Designator, OptParenthesesActPars OptParenthesesActPars) {
+    public FactorFuncCallOrVar (Designator Designator, OptParenthesesActPars OptParenthesesActPars) {
         this.Designator=Designator;
         if(Designator!=null) Designator.setParent(this);
         this.OptParenthesesActPars=OptParenthesesActPars;

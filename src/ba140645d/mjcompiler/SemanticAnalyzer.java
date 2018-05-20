@@ -2,11 +2,15 @@ package ba140645d.mjcompiler;
 
 
 import ba140645d.mjcompiler.ast.*;
+import ba140645d.mjcompiler.utilities.StructLinkedList;
 import com.sun.istack.internal.Nullable;
 import rs.etf.pp1.symboltable.Tab;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 import rs.etf.pp1.symboltable.structure.SymbolDataStructure;
+
+import java.util.Collection;
+import java.util.Iterator;
 
 public class SemanticAnalyzer extends VisitorAdaptor{
 
@@ -29,8 +33,15 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     // objekat trenutnog metoda
     private Obj currentMethod = Tab.noObj;
 
+    // broj formalnih parametara metode
+    private int currentMethodFormParNum = 0;
+
     // objekat pocetnog designatora
     private Obj designatorObj = Tab.noObj;
+
+    private static final String ARR_INDEX_TYPE_ERR = "Indeks niza mora biti tipa Int!";
+
+    private static final String NOT_ARR_TYPE_ERR_MSG = "Tip mora biti niz!";
 
 
 
@@ -102,6 +113,10 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     }
 
 
+    private String formatWrongSymbolKindMessage(int actualSymbolKind, int expectedSymbolKind){
+        return "Stvarna vrsta simbola je : {" + symbolKindToString(actualSymbolKind) + "}. Ocekivana vrsta simbola je : {" + symbolKindToString(expectedSymbolKind) + "}";
+    }
+
     private String formatWrongTypeMessage(Struct expectedType, Struct actualType){
         String expectedTypeName = symbolTypeToString(expectedType.getKind());
         String actualTypeName = symbolTypeToString(actualType.getKind());
@@ -136,21 +151,31 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         return "Simbol [" + symbolName + "]";
     }
 
+    /**
+     * Konvertuje kod vrste simbola u string
+     * @param symbolKind kod vrste simbola
+     * @return vrsta simbola kao string
+     */
     private String symbolKindToString(int symbolKind){
         String retVal = "Unknown";
         switch(symbolKind){
-            case Obj.Con :  retVal =  "Con"; break;
-            case Obj.Elem : retVal = "Elem"; break;
-            case Obj.Fld : retVal = "Fld"; break;
-            case Obj.Meth : retVal = "Meth"; break;
-            case Obj.Prog : retVal = "Prog"; break;
-            case Obj.Type : retVal = "Type"; break;
-            case Obj.Var : retVal = "Var"; break;
+            case Obj.Con :  retVal =  "Con";    break;
+            case Obj.Elem : retVal = "Elem";    break;
+            case Obj.Fld : retVal = "Fld";      break;
+            case Obj.Meth : retVal = "Meth";    break;
+            case Obj.Prog : retVal = "Prog";    break;
+            case Obj.Type : retVal = "Type";    break;
+            case Obj.Var : retVal = "Var";      break;
         }
 
         return retVal;
     }
 
+    /**
+     * Konvertuje kod tipa simbola u string
+     * @param symbolType tip simbola predstavljen celobrojnom vrednoscu
+     * @return vraca zeljeni tip simbola u vidu stringa
+     */
     private String symbolTypeToString(int symbolType){
         String retVal = "Unknown";
 
@@ -165,6 +190,11 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         return retVal;
     }
 
+    /**
+     * Formatira opste informacije simbola za ispis ( naziv, vrsta, tip)
+     * @param symbol zeljeni simbol za ispis
+     * @return formatirana poruka sa opstim informacijama simbola
+     */
     private String formatSymbolInfo(Obj symbol){
         String symbolNameFormat = formatSymbolName(symbol.getName());
         String symbolKind = symbolKindToString(symbol.getKind());
@@ -181,6 +211,68 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     }
 
 
+    /**
+     * Formatira ispis koji naglasava koliko parametara ima data metoda
+     * @param funcObj simbol metode
+     * @return formatirana poruka za ispis
+     */
+    private String formatFuncParNumIncorrectMessage(Obj funcObj){
+
+        if (funcObj.getLevel() == 0)
+            return "Funkcija : {" + funcObj.getName() + "} ne prima parametre";
+        else if (funcObj.getLevel() == 1)
+            return "Funkcija : {" + funcObj.getName() + "} ima " + funcObj.getLevel() + "parametar";
+        else
+            return "Funkcija : {" + funcObj.getName() + "} ima " + funcObj.getLevel() + "parametar";
+    }
+
+
+    /**
+     * Formatira ispis greske kada tip formalnog i stvarnog parametra metode nije kompatabilan pri dodeli
+     * @param actualType tip stvarnog parametra metode
+     * @param formalType tip formalnog parametra metode
+     * @param paramNum redni broj parametra u metodi
+     * @return formatirana poruka za ispis
+     */
+    private String formatFuncWrongParTypeMessage(Struct actualType, Struct formalType, int paramNum){
+        String wrongTypeMsg = formatWrongTypeMessage(formalType.getKind(), actualType.getKind());
+
+        return "Parametar broj : " + paramNum + ". " + wrongTypeMsg;
+    }
+
+
+    /**
+     * Funkcija koja obmotava ponasanje za visit metode vezane za izraze
+     * Moze biti maksimalno jedan od tipova operanda izostavljen, ali ne i oba ( smatra se greskom )
+     * @param leftOperandType tip levog operanda, mooze biti izostavljen
+     * @param rightOperandType tip desnog operanda, moze biti izostavljen
+     * @return vraca tip koji je rezultat izraza
+     */
+    private Struct checkIfValidExpr(@Nullable  Struct leftOperandType, @Nullable Struct rightOperandType, SyntaxNode visitedNode){
+        Struct returnType = Tab.noType;
+
+        if (leftOperandType == null && rightOperandType == null){
+            System.err.println("FATAL ERROR!!! Function checkIfValidExpr has null left and right parameter");
+
+            return returnType;
+        }
+
+
+        // postoji samo jedan operand i samo se vratimo
+        if (rightOperandType == null)
+            return leftOperandType;
+        else if (leftOperandType == null)
+            return rightOperandType;
+
+
+        if (leftOperandType.equals(Tab.intType) && rightOperandType.equals(Tab.intType))
+            return Tab.intType;
+        else if (!leftOperandType.equals(Tab.noType) || !rightOperandType.equals(Tab.noType))
+            logError("Aritmeticki izrazi zahtevaju da operandi budu tipa Int", visitedNode);
+
+
+        return returnType;
+    }
 
     @Override
     public void visit(Program program) {
@@ -232,34 +324,24 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
             // tip sa desne strane dodele
             Struct rightSide = Tab.noType;
-            Obj rightSideObj = Tab.noObj;
 
-            // da li je sa desne strane bool konstanta
-            boolean isConstValBool = false;
 
             // postavljamo tip podatka sa desne strane i citamo vrednost
             if (constValue instanceof NumConst){
                 rightSide = Tab.intType;
-                rightSideObj = Tab.find("int");
 
                 value = ((NumConst) constValue).getNumConst();
             }else if (constValue instanceof CharConst){
                 rightSide = Tab.charType;
-                rightSideObj = Tab.find("char");
 
                 value = ((CharConst) constValue).getCharConst();
             }else if (constValue instanceof BoolConst){
                 rightSide = Tab.find("bool").getType();
 
-                rightSideObj = Tab.find("bool");
-                isConstValBool = true;
-
                 value = ((BoolConst) constValue).getBoolConst()  ? 1 : 0;
             }
 
-            // da li je bool tip
-            boolean isBoolDef = currentTypeObj.getName().equals("bool");
-
+            // ispitujemo da li je dodela moguca
             if (type.assignableTo(rightSide)){
                 Obj constObj = Tab.insert(Obj.Con, constName, type);
 
@@ -335,12 +417,21 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         logInfo(formatSymbolInfo(varObj), varDeclDefinition);
     }
 
+    /****************************************************************************
+     * **************************************************************************
+     ***************     VISIT METODE ZA DEFINISANJE METODA     *****************
+     ***************************    I PARAMETARA   ******************************
+     ****************************************************************************/
+
     @Override
     public void visit(MethodName methodName){
         String name = methodName.getMethodName();
 
         // uzimamo da je podrazumevano noObj
         currentMethod = Tab.noObj;
+
+        // inicijalizujemo broj formalnih parametara na 0
+        currentMethodFormParNum = 0;
 
         // ako je vec definisano onda prijavimo gresku
         if (isDefined(name))
@@ -360,7 +451,11 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         if (currentMethod != Tab.noObj) {
             Tab.chainLocalSymbols(currentMethod);
 
+            // postavljamo broj formalnih parametara
+            currentMethod.setLevel(currentMethodFormParNum);
+
             logInfo(formatSymbolInfo(currentMethod), methodDecl);
+           /// logInfo(Integer.toString(currentMethodFormParNum) + " je broj formalnih parametara", methodDecl);
             //logInfo(for);
         }
 
@@ -398,6 +493,9 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         else
             paramObj = Tab.insert(Obj.Var, formParName, currentTypeStruct);
 
+        // uvecavamo broj formalnih parametara
+        currentMethodFormParNum++;
+
         // informativno logovanje
         logInfo(formatSymbolInfo(paramObj), formParDecl);
     }
@@ -429,14 +527,14 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         designatorRepeatListDeclared.obj = Tab.noObj;
 
 
-        Obj designatorRepeatListObj = designatorRepeatListDeclared.getDesignatorRepeatList().obj;
+        Obj designatorObj = designatorRepeatListDeclared.getDesignatorRepeatList().obj;
         //Obj designatorRepeatObj = designatorRepeatListDeclared.getDesignatorRepeat().obj;
 
         DesignatorRepeat designatorRepeat = designatorRepeatListDeclared.getDesignatorRepeat();
 
         // da li je u pitanju pristup polju ili elementu niza
         if (designatorRepeat instanceof DesignatorRepeatField){
-            boolean isClass = designatorRepeatListObj.getType().getKind() == Struct.Class;
+            boolean isClass = designatorObj.getType().getKind() == Struct.Class;
             String message = "";
 
             String fieldName = ((DesignatorRepeatField) designatorRepeat).getFieldName();
@@ -444,14 +542,14 @@ public class SemanticAnalyzer extends VisitorAdaptor{
             // pristup preko tacke je moguc samo za podatke koji su tipa Class
             // ukoliko nisu tipa class, jednostavno treba da prijavimo gresku i vratimo se
             if (!isClass){
-                message = formatWrongTypeMessage(Struct.Class, designatorRepeatListObj.getType().getKind());
+                message = formatWrongTypeMessage(Struct.Class, designatorObj.getType().getKind());
                 logError(message, designatorRepeatListDeclared);
 
                 return;
             }
 
             // dohvatimo sve clanove klase(funkcije i metode)
-            SymbolDataStructure classMembers = designatorRepeatListObj.getType().getMembers();
+            SymbolDataStructure classMembers = designatorObj.getType().getMembers();
 
             // trazimo simbol sa datim nazivom
             Obj fieldObj = classMembers.searchKey(fieldName);
@@ -459,7 +557,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
             // ukoliko dato polje ne postoji u klasi
             // javiti gresku
             if (fieldObj == null){
-                message = formatClassMemberDoesntExistMessage(designatorRepeatListObj, fieldName);
+                message = formatClassMemberDoesntExistMessage(designatorObj, fieldName);
                 logError(message, designatorRepeatListDeclared);
 
                 return;
@@ -469,7 +567,27 @@ public class SemanticAnalyzer extends VisitorAdaptor{
             designatorRepeatListDeclared.obj = fieldObj;
 
         }else{ // slucaj kada je DesignatorRepeat zapravo DesignatorRepeatExpr(pristup elementu niza)
+            Expr arraySize = ((DesignatorRepeatExpr)designatorRepeatListDeclared.getDesignatorRepeat()).getExpr();
 
+            if (!arraySize.struct.equals(Tab.intType)){
+                logError(ARR_INDEX_TYPE_ERR, designatorRepeatListDeclared);
+
+                return;
+            }
+
+            if (designatorObj.getType().getKind() != Struct.Array){
+                logError(NOT_ARR_TYPE_ERR_MSG, designatorRepeatListDeclared.getDesignatorRepeatList());
+            }
+
+            // naziv elementa
+            String elementName = designatorObj.getName();
+
+            // sam tip elementa
+            // posto je tip designatorObj niz nekog tipa, treba da dohvatimo taj tip
+            Struct elementType = designatorObj.getType().getElemType();
+
+            //objekat koji je tipa element niza
+            designatorRepeatListDeclared.obj = new Obj(Obj.Elem, elementName, elementType);
         }
     }
 
@@ -517,10 +635,8 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
         Struct rightOperandType = expr.getAddopTermList().struct;
 
-        if (leftOperandType.equals(Tab.intType) && rightOperandType.equals(Tab.intType))
-            expr.struct = Tab.intType;
-        else if (!leftOperandType.equals(Tab.noType) && !rightOperandType.equals(Tab.noType))
-            logError("Aritmeticki izrazi zahtevaju da operandi budu tipa Int", expr);
+
+        expr.struct = checkIfValidExpr(leftOperandType, rightOperandType, expr.getTerm());
     }
 
     @Override
@@ -532,8 +648,8 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     @Override
     public void visit(AddopTermListEpsilon addopTermListEpsilon){
         // podrazumevamo da kada je u pitanju epsilon smena
-        // da tada kao da mnozimo sa * 1
-        addopTermListEpsilon.struct = Tab.intType;
+        // da tada kao da mnozimo sa * 1 odnosno sabiramo sa 0
+        addopTermListEpsilon.struct = null;
     }
 
     @Override
@@ -544,29 +660,19 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         // tip desnog operanda
         Struct rightOperandType = addopTermListDeclared.getAddopTerm().struct;
 
-        addopTermListDeclared.struct = Tab.noType;
-
-        if (leftOperandType.equals(Tab.intType) && rightOperandType.equals(Tab.intType))
-            addopTermListDeclared.struct = Tab.intType;
-        else if (!leftOperandType.equals(Tab.noType) && !rightOperandType.equals(Tab.noType))
-            logError("Aritmeticki izrazi zahtevaju da operandi budu tipa Int", addopTermListDeclared);
+       addopTermListDeclared.struct =  checkIfValidExpr(leftOperandType, rightOperandType, addopTermListDeclared.getAddopTermList());
     }
 
 
     @Override
     public void visit(Term term){
         // tip levog operanda
-        Struct leftOperandStruct = term.getFactor().struct;
+        Struct leftOperandType = term.getFactor().struct;
 
         // tip desnog operanda
-        Struct rightOperandStruct = term.getMulopFactorList().struct;
+        Struct rightOperandType = term.getMulopFactorList().struct;
 
-        term.struct = Tab.noType;
-
-        if (leftOperandStruct.equals(Tab.intType) && rightOperandStruct.equals(Tab.intType))
-            term.struct = Tab.intType;
-        else if (!leftOperandStruct.equals(Tab.noType) && !rightOperandStruct.equals(Tab.noType))
-            logError("Aritmeticke operacije zahtevaju da operandi budu tipa Int", term);
+        term.struct = checkIfValidExpr(leftOperandType, rightOperandType, term);
 
     }
 
@@ -577,7 +683,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
     @Override
     public void visit(MulopFactorListEpsilon mulopFactorListEpsilon){
-        mulopFactorListEpsilon.struct = Tab.intType;
+        mulopFactorListEpsilon.struct = null;
     }
 
     @Override
@@ -589,16 +695,61 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
         Struct rightOperandType = mulopFactorListDeclared.getMulopFactor().struct;
 
-        if (leftOperandType.equals(Tab.intType) && rightOperandType.equals(Tab.intType))
-            mulopFactorListDeclared.struct = Tab.intType;
-        else if (!leftOperandType.equals(Tab.noType) && !rightOperandType.equals(Tab.noType))
-            logError("Aritmeticke operacije zahtevaju da operandi budu tipa Int", mulopFactorListDeclared);
+        mulopFactorListDeclared.struct = checkIfValidExpr(leftOperandType, rightOperandType, mulopFactorListDeclared.getMulopFactorList());
     }
 
 
     @Override
     public void visit(FactorFuncCallOrVar factorFuncCallOrVar){
         factorFuncCallOrVar.struct = factorFuncCallOrVar.getDesignator().obj.getType();
+
+        // cvor koji sadrzi parametre fje
+        OptParenthesesActPars funcPars = factorFuncCallOrVar.getOptParenthesesActPars();
+
+        // ako nije poziv f-je onda samo se vratimo
+        if (!(funcPars instanceof OptParenthesesActParsDeclared))
+            return;
+
+        // dohvatamo objekat
+        Obj funcObj = factorFuncCallOrVar.getDesignator().obj;
+
+        // u pitanju je poziv fje a objekat nije vrsta fja, onda samo ispisemo gresku i zavrsimo obradu
+        if (funcObj.getKind() != Obj.Meth){
+            logError(formatWrongSymbolKindMessage(funcObj.getKind(), Obj.Meth),  factorFuncCallOrVar.getDesignator());
+            return;
+        }
+
+        //dohvatimo listu stvarnih parametara
+        StructLinkedList actualParsList = factorFuncCallOrVar.getOptParenthesesActPars().structlinkedlist;
+
+        // proverimo da li je broj elemenata liste jednak broju formalnih parametara fje
+        // ukoliko nije jednostavno se vratimo nazad
+        if (actualParsList.size() != funcObj.getLevel()){
+            logError(formatFuncParNumIncorrectMessage(funcObj), factorFuncCallOrVar);
+
+            return;
+        }
+
+        // kolekcija svih lokalnih simbola fje
+        // prvih N simbola su formalni parametri funkcije
+        Iterator<Obj> formalParsIt = funcObj.getLocalSymbols().iterator();
+
+        // broj formalnih parametara
+        int parNum = funcObj.getLevel();
+
+
+        for(int i = 0; i <  parNum; ++i){
+            // formalni tip parametra
+            Struct formParType = formalParsIt.next().getType();
+
+            // stvarni tip parametra
+            Struct actualParType = actualParsList.get(i);
+
+            // ako nije moguce dodeliti onda treba ispisati gresku
+            if (!actualParType.assignableTo(formParType))
+                logError(formatFuncWrongParTypeMessage(actualParType, formParType, i + 1), factorFuncCallOrVar);
+        }
+
     }
 
     @Override
@@ -630,19 +781,70 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
 
 
+    /**********************************************************************
+     **********************************************************************
+     ****************   VISIT METODE Stvarnih Parametara  *****************
+     **********************************************************************
+     ********************************************************************/
+
+    @Override
+    public void visit(OptParenthesesActParsEpsilon noParams){
+
+        noParams.structlinkedlist = new StructLinkedList();
+
+       // logInfo("Visited OptParanthesesActParsEpsilon", noParams);
+    }
+
+    @Override
+    public void visit(OptParenthesesActParsDeclared params){
+        params.structlinkedlist = params.getOptActPars().structlinkedlist;
+
+       // logInfo("Visited OptParanthesesActParsDeclared", params);
+    }
+
+    @Override
+    public void visit(OptActParsDeclared actualPars){
+        actualPars.structlinkedlist = actualPars.getActPars().structlinkedlist;
+
+       // logInfo("Visited OptActParsDeclared ", actualPars);
+    }
+
+    @Override
+    public void visit(OptActParsEpsilon noPars){
+        // epsilon cvor, ovde samo kreiramo listu
+        noPars.structlinkedlist = new StructLinkedList();
+
+       // logInfo("Visited OptActParsEpsilon", noPars);
+    }
+
+    @Override
+    public void visit(ActPars actPars){
+        // dohvatimo parametra iz izraza
+        Struct paramType = actPars.getExpr().struct;
+
+        // dodamo tip stvarnog parametra u listu
+        (actPars.structlinkedlist = actPars.getActParsRepeatList().structlinkedlist).add(paramType);
+
+       // logInfo("Visited ActPars", actPars);
+    }
+
+    @Override
+    public void visit(ActParsRepeatListDeclared actParsRepeatListDeclared){
+        actParsRepeatListDeclared.structlinkedlist = actParsRepeatListDeclared.getActParsRepeatList().structlinkedlist;
+
+        actParsRepeatListDeclared.structlinkedlist.add(actParsRepeatListDeclared.getActParsRepeat().struct);
+    }
 
 
+    @Override
+    public void visit(ActParsRepeatListEpsilon actParsRepeatListEpsilon){
+        actParsRepeatListEpsilon.structlinkedlist = new StructLinkedList();
+    }
 
-
-
-
-
-
-
-
-
-
-
+    @Override
+    public void visit(ActParsRepeat actualPars){
+        actualPars.struct = actualPars.getExpr().struct;
+    }
 
 
 
