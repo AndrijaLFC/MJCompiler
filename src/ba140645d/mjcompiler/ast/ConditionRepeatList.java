@@ -11,6 +11,8 @@ public abstract class ConditionRepeatList implements SyntaxNode {
 
     private int line;
 
+    public rs.etf.pp1.symboltable.concepts.Struct struct;
+
     public SyntaxNode getParent() {
         return parent;
     }

@@ -12,6 +12,8 @@ public class Condition implements SyntaxNode {
     private CondTerm CondTerm;
     private ConditionRepeatList ConditionRepeatList;
 
+    public rs.etf.pp1.symboltable.concepts.Struct struct;
+
     public Condition (CondTerm CondTerm, ConditionRepeatList ConditionRepeatList) {
         this.CondTerm=CondTerm;
         if(CondTerm!=null) CondTerm.setParent(this);

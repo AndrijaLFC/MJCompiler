@@ -12,6 +12,8 @@ public class CondTerm implements SyntaxNode {
     private CondFact CondFact;
     private CondFactRepeatList CondFactRepeatList;
 
+    public rs.etf.pp1.symboltable.concepts.Struct struct;
+
     public CondTerm (CondFact CondFact, CondFactRepeatList CondFactRepeatList) {
         this.CondFact=CondFact;
         if(CondFact!=null) CondFact.setParent(this);

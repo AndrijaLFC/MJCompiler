@@ -1,6 +1,7 @@
 package ba140645d.mjcompiler;
 
 import ba140645d.log4j.Log4JUtil;
+import ba140645d.mjcompiler.ast.Program;
 import ba140645d.mjcompiler.ast.SyntaxNode;
 import java_cup.runtime.Symbol;
 import org.apache.log4j.Logger;
@@ -43,6 +44,10 @@ public class Compiler{
             Symbol symbol = parser.parse();
 
             SyntaxNode root = (SyntaxNode)symbol.value;
+
+            Program program = (Program)root;
+
+            log.info(program.toString(""));
 
             SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
 

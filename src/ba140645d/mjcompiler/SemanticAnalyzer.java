@@ -2,14 +2,15 @@ package ba140645d.mjcompiler;
 
 
 import ba140645d.mjcompiler.ast.*;
+import ba140645d.mjcompiler.ast.Condition;
 import ba140645d.mjcompiler.utilities.StructLinkedList;
+import com.sun.istack.internal.NotNull;
 import com.sun.istack.internal.Nullable;
 import rs.etf.pp1.symboltable.Tab;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 import rs.etf.pp1.symboltable.structure.SymbolDataStructure;
 
-import java.util.Collection;
 import java.util.Iterator;
 
 public class SemanticAnalyzer extends VisitorAdaptor{
@@ -42,6 +43,10 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     private static final String ARR_INDEX_TYPE_ERR = "Indeks niza mora biti tipa Int!";
 
     private static final String NOT_ARR_TYPE_ERR_MSG = "Tip mora biti niz!";
+
+    private static final String INCOMPATIBLE_TYPE_ERR_MSG = "Tipovi nisu kompatabilni!";
+
+    private static final String REF_TYPE_RELOP_ERR_MSG = "Nedozvoljen relacioni operator za reference";
 
 
 
@@ -216,14 +221,14 @@ public class SemanticAnalyzer extends VisitorAdaptor{
      * @param funcObj simbol metode
      * @return formatirana poruka za ispis
      */
-    private String formatFuncParNumIncorrectMessage(Obj funcObj){
+    private String formatFuncParNumIncorrectMessage(@NotNull Obj funcObj){
 
         if (funcObj.getLevel() == 0)
             return "Funkcija : {" + funcObj.getName() + "} ne prima parametre";
         else if (funcObj.getLevel() == 1)
-            return "Funkcija : {" + funcObj.getName() + "} ima " + funcObj.getLevel() + "parametar";
+            return "Funkcija : {" + funcObj.getName() + "} ima " + funcObj.getLevel() + " parametar";
         else
-            return "Funkcija : {" + funcObj.getName() + "} ima " + funcObj.getLevel() + "parametar";
+            return "Funkcija : {" + funcObj.getName() + "} ima " + funcObj.getLevel() + " parametra";
     }
 
 
@@ -234,7 +239,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
      * @param paramNum redni broj parametra u metodi
      * @return formatirana poruka za ispis
      */
-    private String formatFuncWrongParTypeMessage(Struct actualType, Struct formalType, int paramNum){
+    private String formatFuncWrongParTypeMessage(@NotNull Struct actualType, @NotNull Struct formalType, int paramNum){
         String wrongTypeMsg = formatWrongTypeMessage(formalType.getKind(), actualType.getKind());
 
         return "Parametar broj : " + paramNum + ". " + wrongTypeMsg;
@@ -249,14 +254,13 @@ public class SemanticAnalyzer extends VisitorAdaptor{
      * @return vraca tip koji je rezultat izraza
      */
     private Struct checkIfValidExpr(@Nullable  Struct leftOperandType, @Nullable Struct rightOperandType, SyntaxNode visitedNode){
-        Struct returnType = Tab.noType;
+        Struct returnType = Tab.intType;
 
         if (leftOperandType == null && rightOperandType == null){
             System.err.println("FATAL ERROR!!! Function checkIfValidExpr has null left and right parameter");
 
             return returnType;
         }
-
 
         // postoji samo jedan operand i samo se vratimo
         if (rightOperandType == null)
@@ -273,6 +277,73 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
         return returnType;
     }
+
+    /**
+     *  Formatira poruku za ispis koja navodi da nisu navedeni parametri za poziv funkcije
+     * @param funcObj simbol funkcije
+     * @return string poruke
+     */
+    private String formatMissingFuncActParsMessage(@NotNull Obj funcObj){
+        // dohvatamo vrstu simbola
+        int objKind = funcObj.getKind();
+
+
+        if (objKind != Obj.Meth){
+            System.err.println("FATAL ERROR!!! In function formatMissingFuncActParsMessage. Obj kind is : " + symbolKindToString(objKind));
+
+            return "";
+        }
+
+        // naziv fje
+        String funcName = funcObj.getName();
+
+        return "Naveden je poziv funkcije {" + funcName + "} bez stvarnih argumenata!";
+    }
+
+
+    /**
+     *
+     * @param actualParsList lista stvarnih argumenata
+     * @param funcObj simbol funkcije
+     * @param syntaxNode referentni cvor stabla u slucaju da treba da se ispise greska
+     * @return fleg koji oznacava da li je sve u redu ili ne
+     */
+    private boolean checkFuncFormalAndActualPars(@NotNull StructLinkedList actualParsList, @NotNull Obj funcObj, @NotNull SyntaxNode syntaxNode){
+        // proverimo da li je broj elemenata liste jednak broju formalnih parametara fje
+        // ukoliko nije jednostavno se vratimo nazad
+        if (actualParsList.size() != funcObj.getLevel()){
+            logError(formatFuncParNumIncorrectMessage(funcObj), syntaxNode);
+
+            return false;
+        }
+
+        // kolekcija svih lokalnih simbola fje
+        // prvih N simbola su formalni parametri funkcije
+        Iterator<Obj> formalParsIt = funcObj.getLocalSymbols().iterator();
+
+        // broj formalnih parametara
+        int parNum = funcObj.getLevel();
+
+        boolean allOk = true;
+
+        for(int i = 0; i <  parNum; ++i){
+            // formalni tip parametra
+            Struct formParType = formalParsIt.next().getType();
+
+            // stvarni tip parametra
+            Struct actualParType = actualParsList.get(i);
+
+            // ako nije moguce dodeliti onda treba ispisati gresku
+            if (!actualParType.assignableTo(formParType)) {
+                logError(formatFuncWrongParTypeMessage(actualParType, formParType, i + 1), syntaxNode);
+
+                allOk = false;
+            }
+        }
+
+        return allOk;
+    }
+
 
     @Override
     public void visit(Program program) {
@@ -392,7 +463,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
         // simbol vec definisan
         if (isDefinedInCurrentScope(varName)) {
-            logInfo("Simbol[" + varName + "] je vec definisan u trenutnom opsegu!", varDeclDefinition);
+            logError("Simbol[" + varName + "] je vec definisan u trenutnom opsegu!", varDeclDefinition);
             return;
         }
 
@@ -501,10 +572,12 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     }
 
     /****************************************************************************
-     * **************************************************************************
-    *************     VISIT METODE ZA PRISTUP PROMENLJIVAMA     *****************
+     ****************************************************************************
+     *************     VISIT METODE ZA PRISTUP PROMENLJIVAMA     ****************
      ****************************************************************************
      ****************************************************************************/
+
+
     @Override
     public void visit(Designator designator){
         designator.obj = designator.getDesignatorRepeatList().obj;
@@ -602,6 +675,18 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         //logInfo(designatorRepeatField.getFieldName(), designatorRepeatField);
     }
 
+
+    @Override
+    public void visit(DesignatorStatementActualPars designatorFuncCall){
+        Obj funcObj = designatorFuncCall.getDesignator().obj;
+
+        if (funcObj.getKind() != Obj.Meth){
+            logError(formatWrongSymbolKindMessage(funcObj.getKind(), Obj.Meth), designatorFuncCall.getDesignator());
+
+            return;
+        }
+        checkFuncFormalAndActualPars(designatorFuncCall.getOptActPars().structlinkedlist, funcObj, designatorFuncCall);
+    }
 
 
 
@@ -701,55 +786,40 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
     @Override
     public void visit(FactorFuncCallOrVar factorFuncCallOrVar){
-        factorFuncCallOrVar.struct = factorFuncCallOrVar.getDesignator().obj.getType();
-
-        // cvor koji sadrzi parametre fje
-        OptParenthesesActPars funcPars = factorFuncCallOrVar.getOptParenthesesActPars();
-
-        // ako nije poziv f-je onda samo se vratimo
-        if (!(funcPars instanceof OptParenthesesActParsDeclared))
-            return;
 
         // dohvatamo objekat
         Obj funcObj = factorFuncCallOrVar.getDesignator().obj;
 
-        // u pitanju je poziv fje a objekat nije vrsta fja, onda samo ispisemo gresku i zavrsimo obradu
-        if (funcObj.getKind() != Obj.Meth){
-            logError(formatWrongSymbolKindMessage(funcObj.getKind(), Obj.Meth),  factorFuncCallOrVar.getDesignator());
+        factorFuncCallOrVar.struct = funcObj.getType();
+
+        // cvor koji sadrzi parametre fje
+        OptParenthesesActPars funcPars = factorFuncCallOrVar.getOptParenthesesActPars();
+
+        // ako nije poziv f-je, a ima prosledjene parametre
+        if (funcObj.getKind() != Obj.Meth && funcPars instanceof  OptParenthesesActParsDeclared){
+            logError(formatWrongSymbolKindMessage(funcObj.getKind(), Obj.Meth), factorFuncCallOrVar);
+
             return;
         }
 
-        //dohvatimo listu stvarnih parametara
+        // ako nije metoda, jednostavno se vratimo
+        if (funcObj.getKind() != Obj.Meth)
+            return;
+
+
+        // ukoliko jeste metoda a parametri nisu postavljeni onda treba da prijavimo gresku
+        if (funcPars instanceof OptParenthesesActParsEpsilon){
+            logError(formatMissingFuncActParsMessage(funcObj), factorFuncCallOrVar);
+
+            return;
+        }
+
+
+        // dohvatimo listu stvarnih parametara
         StructLinkedList actualParsList = factorFuncCallOrVar.getOptParenthesesActPars().structlinkedlist;
 
-        // proverimo da li je broj elemenata liste jednak broju formalnih parametara fje
-        // ukoliko nije jednostavno se vratimo nazad
-        if (actualParsList.size() != funcObj.getLevel()){
-            logError(formatFuncParNumIncorrectMessage(funcObj), factorFuncCallOrVar);
 
-            return;
-        }
-
-        // kolekcija svih lokalnih simbola fje
-        // prvih N simbola su formalni parametri funkcije
-        Iterator<Obj> formalParsIt = funcObj.getLocalSymbols().iterator();
-
-        // broj formalnih parametara
-        int parNum = funcObj.getLevel();
-
-
-        for(int i = 0; i <  parNum; ++i){
-            // formalni tip parametra
-            Struct formParType = formalParsIt.next().getType();
-
-            // stvarni tip parametra
-            Struct actualParType = actualParsList.get(i);
-
-            // ako nije moguce dodeliti onda treba ispisati gresku
-            if (!actualParType.assignableTo(formParType))
-                logError(formatFuncWrongParTypeMessage(actualParType, formParType, i + 1), factorFuncCallOrVar);
-        }
-
+        checkFuncFormalAndActualPars(actualParsList, funcObj, factorFuncCallOrVar);
     }
 
     @Override
@@ -779,6 +849,118 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
 
 
+    /**********************************************************************
+     **********************************************************************
+     ********************     VISIT METODE LOGICKIH      *****************
+     ****************************     IZRAZA    **************************
+     ********************************************************************/
+
+    @Override
+    public void visit(Condition condition){
+
+        // tip levog operanda
+        Struct leftOperandType = condition.getCondTerm().struct;
+
+        // tip desnog operanda
+        Struct rightOperandType = condition.getConditionRepeatList().struct;
+
+
+        if (leftOperandType != boolType || rightOperandType != boolType)
+            condition.struct = Tab.noType;
+        else
+            condition.struct = boolType;
+    }
+
+    @Override
+    public void visit(ConditionRepeatListDeclared conditionRepeatList){
+        conditionRepeatList.struct = conditionRepeatList.getConditionRepeat().struct;
+    }
+
+    @Override
+    public void visit(ConditionRepeatListEpsilon conditionRepeatListEpsilon){
+        conditionRepeatListEpsilon.struct = null;
+    }
+
+    @Override
+    public void visit(ConditionRepeat conditionRepeat){
+        conditionRepeat.struct = conditionRepeat.getCondTerm().struct;
+    }
+
+    @Override
+    public void visit(CondTerm condTerm){
+        // tip levog operanda
+        Struct leftOperandType = condTerm.getCondFact().struct;
+
+        // tip desnog operanda
+        Struct rightOperandType = condTerm.getCondFactRepeatList().struct;
+
+        // rezultat operacija mora da je bool
+        condTerm.struct = boolType;
+
+        if (rightOperandType == null)
+            return;
+
+        // tipovi nisu kompatabilni
+        if (!leftOperandType.compatibleWith(rightOperandType)){
+            logError(INCOMPATIBLE_TYPE_ERR_MSG,condTerm.getCondFact().getExpr());
+
+            return;
+        }
+    }
+
+    @Override
+    public void visit(CondFact condFact){
+        // tip levog operanda
+        Struct leftOperandType = condFact.getExpr().struct;
+
+        // tip desnog operanda
+        Struct rightOperandType = condFact.getOptRelopExpr().struct;
+
+        condFact.struct = boolType;
+
+        // ne postoji desni operand
+        if (rightOperandType == null)
+            return;
+
+
+        // tipovi nisu kompatabilni
+        if (!leftOperandType.compatibleWith(rightOperandType)){
+            logError(INCOMPATIBLE_TYPE_ERR_MSG,condFact.getExpr());
+
+            return;
+        }
+
+        Relop relop = ((OptRelopExprDeclared)condFact.getOptRelopExpr()).getRelop();
+
+        boolean areRefType = leftOperandType.compatibleWith(Tab.nullType) && rightOperandType.compatibleWith(Tab.nullType);
+
+        boolean relopIsEqualsOrNotEquals = (relop instanceof RelopEquals) || (relop instanceof  RelopNotEquals);
+
+        // ako je referencijalni tip i ako nije operator == il i!= onda je to greska
+        if (areRefType && !relopIsEqualsOrNotEquals){
+            logError(REF_TYPE_RELOP_ERR_MSG, condFact);
+        }
+    }
+
+    @Override
+    public void visit(OptRelopExprDeclared relopExpr){
+        relopExpr.struct = relopExpr.getExpr().struct;
+    }
+
+    @Override
+    public void visit(CondFactRepeatListDeclared condFactList){
+        Struct leftOperandType = condFactList.getCondFactRepeatList().struct;
+
+        Struct rightOperandType = condFactList.getCondFactRepeat().struct;
+
+        condFactList.struct = boolType;
+    }
+
+    @Override
+    public void visit(CondFactRepeatListEpsilon condFactEpsilonList){
+        condFactEpsilonList.struct = null;
+    }
+
 
 
     /**********************************************************************
@@ -798,23 +980,17 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     @Override
     public void visit(OptParenthesesActParsDeclared params){
         params.structlinkedlist = params.getOptActPars().structlinkedlist;
-
-       // logInfo("Visited OptParanthesesActParsDeclared", params);
     }
 
     @Override
     public void visit(OptActParsDeclared actualPars){
         actualPars.structlinkedlist = actualPars.getActPars().structlinkedlist;
-
-       // logInfo("Visited OptActParsDeclared ", actualPars);
     }
 
     @Override
     public void visit(OptActParsEpsilon noPars){
         // epsilon cvor, ovde samo kreiramo listu
         noPars.structlinkedlist = new StructLinkedList();
-
-       // logInfo("Visited OptActParsEpsilon", noPars);
     }
 
     @Override
@@ -822,10 +998,11 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         // dohvatimo parametra iz izraza
         Struct paramType = actPars.getExpr().struct;
 
-        // dodamo tip stvarnog parametra u listu
-        (actPars.structlinkedlist = actPars.getActParsRepeatList().structlinkedlist).add(paramType);
-
-       // logInfo("Visited ActPars", actPars);
+        // dodamo tip stvarnog parametra u listu na pocetak
+        // iz razloga sto ce se prvi element obici tek na kraju
+        // a ostali elementi ce se obici po normalnom redosledu
+        // stoga prvi treba da stavimo na pocetak
+        (actPars.structlinkedlist = actPars.getActParsRepeatList().structlinkedlist).addFirst(paramType);
     }
 
     @Override
@@ -833,6 +1010,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         actParsRepeatListDeclared.structlinkedlist = actParsRepeatListDeclared.getActParsRepeatList().structlinkedlist;
 
         actParsRepeatListDeclared.structlinkedlist.add(actParsRepeatListDeclared.getActParsRepeat().struct);
+
     }
 
 
@@ -845,6 +1023,14 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     public void visit(ActParsRepeat actualPars){
         actualPars.struct = actualPars.getExpr().struct;
     }
+
+    /**********************************************************************
+     **********************************************************************
+     ******************      VISIT METODE NAREDBI     *********************
+     **********************************************************************
+     ********************************************************************/
+
+
 
 
 

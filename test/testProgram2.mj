@@ -11,10 +11,19 @@ int arr[];
 
         }
 
+        int helou2(int c, int ck, int ck3, int ck4)
+        {
+
+        }
+
         bool main(int k[], char c[])
         int x, y;
         {
-            x = x + helou(size, size, size + size*size);
+
+            if (isTrue || isTrue && isTrue && k != k)
+                x = x + size - y;
+
+            x = x + (helou(1,1,1) / robi);
         }
 
 }

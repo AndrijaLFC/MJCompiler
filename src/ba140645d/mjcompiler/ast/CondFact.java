@@ -12,6 +12,8 @@ public class CondFact implements SyntaxNode {
     private Expr Expr;
     private OptRelopExpr OptRelopExpr;
 
+    public rs.etf.pp1.symboltable.concepts.Struct struct;
+
     public CondFact (Expr Expr, OptRelopExpr OptRelopExpr) {
         this.Expr=Expr;
         if(Expr!=null) Expr.setParent(this);

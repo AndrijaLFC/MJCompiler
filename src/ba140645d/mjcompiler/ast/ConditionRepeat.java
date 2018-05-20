@@ -11,6 +11,8 @@ public class ConditionRepeat implements SyntaxNode {
     private int line;
     private CondTerm CondTerm;
 
+    public rs.etf.pp1.symboltable.concepts.Struct struct;
+
     public ConditionRepeat (CondTerm CondTerm) {
         this.CondTerm=CondTerm;
         if(CondTerm!=null) CondTerm.setParent(this);

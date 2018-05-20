@@ -11,6 +11,8 @@ public class CondFactRepeat implements SyntaxNode {
     private int line;
     private CondFact CondFact;
 
+    public rs.etf.pp1.symboltable.concepts.Struct struct;
+
     public CondFactRepeat (CondFact CondFact) {
         this.CondFact=CondFact;
         if(CondFact!=null) CondFact.setParent(this);

@@ -108,11 +108,8 @@ non terminal FormPars, FormParsRepeatList, FormParsRepeat;
 
 
 non terminal Statement, OptElseStatement, DesignatorStatement;
-non terminal Condition, ConditionRepeatList, ConditionRepeat, CondTerm, CondFactRepeatList;
-non terminal CondFact, OptRelopExpr, OptMinus, CondFactRepeat;
-//non terminal MulopFactorList, MulopFactor, Factor;
+
 non terminal Relop;
-//non terminal Addop, Mulop;
 non terminal ProgramName, ClassName;
 
 
@@ -146,6 +143,8 @@ non terminal rs.etf.pp1.symboltable.concepts.Struct MulopFactor;
 non terminal rs.etf.pp1.symboltable.concepts.Struct Mulop;
 non terminal rs.etf.pp1.symboltable.concepts.Struct AddopTerm, Addop;
 
+non terminal rs.etf.pp1.symboltable.concepts.Struct Condition, ConditionRepeatList, ConditionRepeat, CondTerm, CondFactRepeatList;
+non terminal rs.etf.pp1.symboltable.concepts.Struct CondFact, OptRelopExpr, OptMinus, CondFactRepeat;
 /*******************************************
 ********    Gramatika jezika    ************
 ********************************************/
@@ -279,15 +278,15 @@ StatementList ::= (StatementListDeclared) StatementList Statement
 DoWhileBegin ::= (DoWhileBegin) DO ;
 DoWhileEnd ::= (DoWhileEnd) WHILE ;
 
-OptPrintNumConst ::=  (OptPrintNumConstDeclared) OP_COMMA NUM_CONST
+OptPrintNumConst ::=  (OptPrintNumConstDeclared) OP_COMMA NUM_CONST:numConst
                     | (OptPrintNumConstEpsilon) /*epsilon*/
                     ;
 
 OptExpr ::= (OptExprDeclared) Expr | (OptExprEpsilon) /*epsilon*/ ;
 
-OptElseStatement ::=  (OptElseStatementDeclared) ELSE Statement
-                    | (OptElseStatementEpsilon)/* epsilon */
-                     ;
+OptElseStatement ::=    (OptElseStatementDeclared) ELSE Statement
+                        | (OptElseStatementEpsilon)/* epsilon */
+                        ;
 
 DesignatorStatement ::=     (DesignatorStatementAssign)     Designator OP_EQUAL Expr
                         |   (DesignatorStatementActualPars) Designator OP_L_PARENTHESES OptActPars OP_R_PARENTHESES
