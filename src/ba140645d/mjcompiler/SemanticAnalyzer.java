@@ -49,6 +49,12 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     // fleg koji oznacava da li je main metoda definisana
     private boolean mainMethodDefined = false;
 
+    // koliko duboko smo u if-u ugnjezdeni
+    private int ifLevel = 0;
+
+    // fleg koji oznacava da li smo postavili return statement u metodi
+    private boolean returnStatementInMethod = false;
+
 
     /****************************************************************************
      ****************************************************************************
@@ -308,6 +314,15 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         String wrongTypeMsg = formatWrongTypeMessage(formalType.getKind(), actualType.getKind());
 
         return "Parametar broj : " + paramNum + ". " + wrongTypeMsg;
+    }
+
+    /**
+     * Formatira ispis greske za slucaj kada nije navedena return naredba u funkciji
+     * @param methodObj objekat metode
+     * @return poruka za ispis
+     */
+    private String formatFuncMissingReturnStmtMessage(@NotNull Obj methodObj){
+        return "Metoda : {" + methodObj.getName() + "} mora imati return naredbu!";
     }
 
 
@@ -578,6 +593,9 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         // inicijalizujemo broj formalnih parametara na 0
         currentMethodFormParNum = 0;
 
+        // resetujemo fleg za proveru return naredbe u metodi
+        returnStatementInMethod = false;
+
         // ako je vec definisano onda prijavimo gresku
         if (isDefined(name))
             logError(formatAlreadyDefinedMessage(name), methodName);
@@ -613,6 +631,11 @@ public class SemanticAnalyzer extends VisitorAdaptor{
                 logError(MAIN_METHOD_RETURN_TYPE_ERR_MSG, methodDecl);
             else
                 logInfo(formatSymbolInfo(currentMethod), methodDecl);
+
+            // ako ima povratni tip metoda mora vracati rezultat, mozemo navesti kao gresku
+            // ili samo obavestimo da nije naveo da svi putevi vracaju vrednost
+            if (currentMethod.getType() != Tab.noType && !returnStatementInMethod)
+                logError(formatFuncMissingReturnStmtMessage(currentMethod), methodDecl);
         }
 
         // vratimo currentMethod na pocetnu vrednost
@@ -1246,6 +1269,10 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         // ukoliko tipovi nisu jednaki, onda prijavimo gresku
         if (!returnValueType.compatibleWith(currentMethod.getType()))
             logError(FUNC_RETURN_TYPE_ERR_MSG + " " + formatWrongTypeMessage(currentMethod.getType(), returnValueType), returnStatement);
+
+
+        returnStatementInMethod = returnStatementInMethod || (ifLevel == 0);
+
     }
 
     @Override
@@ -1268,7 +1295,6 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
         if (!(designatorType == boolType || designatorType == Tab.intType || designatorType == Tab.charType))
             logError(READ_FUNC_TYPE_ERR_MSG, readStatement);
-
     }
 
     @Override
@@ -1285,10 +1311,19 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     }
 
 
+    @Override
+    public void visit(IfStart ifStart){
+        // uvecavamo ugnjezdenje if-a
+        ifLevel++;
+    }
 
+    @Override
+    public void visit(IfElseStatement ifElseStatement){
+        ifLevel--;
+    }
 
-
-
-
-
+    @Override
+    public void visit(IfStatement ifStatement){
+        ifLevel--;
+    }
 }

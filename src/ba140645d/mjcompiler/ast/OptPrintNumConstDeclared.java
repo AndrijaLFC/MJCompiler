@@ -1,24 +1,24 @@
 // generated with ast extension for cup
 // version 0.8
-// 19/4/2018 17:58:3
+// 22/4/2018 18:10:38
 
 
 package ba140645d.mjcompiler.ast;
 
 public class OptPrintNumConstDeclared extends OptPrintNumConst {
 
-    private Integer N1;
+    private Integer numConst;
 
-    public OptPrintNumConstDeclared (Integer N1) {
-        this.N1=N1;
+    public OptPrintNumConstDeclared (Integer numConst) {
+        this.numConst=numConst;
     }
 
-    public Integer getN1() {
-        return N1;
+    public Integer getNumConst() {
+        return numConst;
     }
 
-    public void setN1(Integer N1) {
-        this.N1=N1;
+    public void setNumConst(Integer numConst) {
+        this.numConst=numConst;
     }
 
     public void accept(Visitor visitor) {
@@ -41,7 +41,7 @@ public class OptPrintNumConstDeclared extends OptPrintNumConst {
         buffer.append(tab);
         buffer.append("OptPrintNumConstDeclared(\n");
 
-        buffer.append(" "+tab+N1);
+        buffer.append(" "+tab+numConst);
         buffer.append("\n");
 
         buffer.append(tab);

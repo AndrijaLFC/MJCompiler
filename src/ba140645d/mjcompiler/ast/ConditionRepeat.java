@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 19/4/2018 17:58:3
+// 22/4/2018 18:10:38
 
 
 package ba140645d.mjcompiler.ast;
@@ -9,9 +9,9 @@ public class ConditionRepeat implements SyntaxNode {
 
     private SyntaxNode parent;
     private int line;
-    private CondTerm CondTerm;
+    public rs.etf.pp1.symboltable.concepts.Struct struct = null;
 
-    public rs.etf.pp1.symboltable.concepts.Struct struct;
+    private CondTerm CondTerm;
 
     public ConditionRepeat (CondTerm CondTerm) {
         this.CondTerm=CondTerm;

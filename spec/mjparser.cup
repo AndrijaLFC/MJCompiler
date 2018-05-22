@@ -148,6 +148,7 @@ non terminal rs.etf.pp1.symboltable.concepts.Struct OptExpr;
 non terminal rs.etf.pp1.symboltable.concepts.Struct Condition, ConditionRepeatList, ConditionRepeat, CondTerm, CondFactRepeatList;
 non terminal rs.etf.pp1.symboltable.concepts.Struct CondFact, OptRelopExpr, OptMinus, CondFactRepeat;
 
+non terminal IfStart;
 
 /*******************************************
 ********    Gramatika jezika    ************
@@ -264,8 +265,8 @@ FormParsRepeat ::= (FormParsRepeat) OP_COMMA FormParDecl ;
 // deklaracija iskaza
 
 Statement ::= (StatementDesignator) DesignatorStatement OP_SEMICOLN
-            | (IfElseStatement)     IF OP_L_PARENTHESES Condition OP_R_PARENTHESES Statement ELSE Statement
-            | (IfStatement)         IF OP_L_PARENTHESES Condition OP_R_PARENTHESES Statement
+            | (IfElseStatement)     IfStart OP_L_PARENTHESES Condition OP_R_PARENTHESES Statement ELSE Statement
+            | (IfStatement)         IfStart OP_L_PARENTHESES Condition OP_R_PARENTHESES Statement
             | (DoWhileStatement)    DoWhileBegin Statement DoWhileEnd OP_L_PARENTHESES Condition OP_R_PARENTHESES OP_SEMICOLN
             | (BreakStatement)      BREAK OP_SEMICOLN
             | (ContinueStatement)   CONTINUE OP_SEMICOLN
@@ -274,6 +275,8 @@ Statement ::= (StatementDesignator) DesignatorStatement OP_SEMICOLN
             | (PrintStatement)      PRINT OP_L_PARENTHESES Expr OptPrintNumConst OP_R_PARENTHESES OP_SEMICOLN
             | (EnclosedStatement)   OP_L_BRACE_PARENTHESES StatementList OP_R_BRACE_PARENTHESES
             ;
+
+IfStart ::= (IfStart) IF;
 
 StatementList ::= (StatementListDeclared) StatementList Statement
                 | (StatementListEpsilon)/*epsilon*/ ;

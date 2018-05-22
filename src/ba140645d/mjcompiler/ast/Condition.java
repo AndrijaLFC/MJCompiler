@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 19/4/2018 17:58:3
+// 22/4/2018 18:10:38
 
 
 package ba140645d.mjcompiler.ast;
@@ -9,10 +9,10 @@ public class Condition implements SyntaxNode {
 
     private SyntaxNode parent;
     private int line;
+    public rs.etf.pp1.symboltable.concepts.Struct struct = null;
+
     private CondTerm CondTerm;
     private ConditionRepeatList ConditionRepeatList;
-
-    public rs.etf.pp1.symboltable.concepts.Struct struct;
 
     public Condition (CondTerm CondTerm, ConditionRepeatList ConditionRepeatList) {
         this.CondTerm=CondTerm;

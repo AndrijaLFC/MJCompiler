@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 19/4/2018 17:58:4
+// 22/4/2018 18:10:40
 
 
 package ba140645d.mjcompiler.ast;
@@ -107,6 +107,7 @@ public interface Visitor {
     public void visit(DoWhileBegin DoWhileBegin);
     public void visit(StatementListEpsilon StatementListEpsilon);
     public void visit(StatementListDeclared StatementListDeclared);
+    public void visit(IfStart IfStart);
     public void visit(EnclosedStatement EnclosedStatement);
     public void visit(PrintStatement PrintStatement);
     public void visit(ReadStatement ReadStatement);

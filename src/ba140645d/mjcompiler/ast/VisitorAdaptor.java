@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 19/4/2018 17:58:4
+// 22/4/2018 18:10:40
 
 
 package ba140645d.mjcompiler.ast;
@@ -107,6 +107,7 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(DoWhileBegin DoWhileBegin) { visit(); }
     public void visit(StatementListEpsilon StatementListEpsilon) { visit(); }
     public void visit(StatementListDeclared StatementListDeclared) { visit(); }
+    public void visit(IfStart IfStart) { visit(); }
     public void visit(EnclosedStatement EnclosedStatement) { visit(); }
     public void visit(PrintStatement PrintStatement) { visit(); }
     public void visit(ReadStatement ReadStatement) { visit(); }

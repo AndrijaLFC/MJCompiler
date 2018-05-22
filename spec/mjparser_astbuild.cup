@@ -127,26 +127,14 @@ nonterminal FormParsRepeat FormParsRepeat;
 non terminal Statement Statement;
 nonterminal OptElseStatement OptElseStatement;
 nonterminal DesignatorStatement DesignatorStatement;
-non terminal Condition Condition;
-nonterminal ConditionRepeatList ConditionRepeatList;
-nonterminal ConditionRepeat ConditionRepeat;
-nonterminal CondTerm CondTerm;
-nonterminal CondFactRepeatList CondFactRepeatList;
-non terminal CondFact CondFact;
-nonterminal OptRelopExpr OptRelopExpr;
-nonterminal OptMinus OptMinus;
-nonterminal CondFactRepeat CondFactRepeat;
-//non terminal MulopFactorList, MulopFactor, Factor;
+
 non terminal Relop Relop;
-//non terminal Addop, Mulop;
 non terminal ProgramName ProgramName;
 nonterminal ClassName ClassName;
 
 
 
-non terminal OptExpr OptExpr;
-nonterminal OptPrintNumConst OptPrintNumConst;
-nonterminal  OptArrExpr OptArrExpr;
+non terminal OptPrintNumConst OptPrintNumConst;
 nonterminal ConstDefinition ConstDefinition;
 non terminal VarDeclDefinition VarDeclDefinition;
 
@@ -169,12 +157,19 @@ non terminal ba140645d.mjcompiler.utilities.StructLinkedList ActPars;
 non terminal ba140645d.mjcompiler.utilities.StructLinkedList ActParsRepeatList;
 non terminal ba140645d.mjcompiler.utilities.StructLinkedList OptActPars;
 non terminal rs.etf.pp1.symboltable.concepts.Struct ActParsRepeat;
+non terminal rs.etf.pp1.symboltable.concepts.Struct OptArrExpr;
 
 non terminal rs.etf.pp1.symboltable.concepts.Struct Expr, Term, AddopTermList;
 non terminal rs.etf.pp1.symboltable.concepts.Struct Factor, MulopFactorList;
 non terminal rs.etf.pp1.symboltable.concepts.Struct MulopFactor;
 non terminal rs.etf.pp1.symboltable.concepts.Struct Mulop;
 non terminal rs.etf.pp1.symboltable.concepts.Struct AddopTerm, Addop;
+non terminal rs.etf.pp1.symboltable.concepts.Struct OptExpr;
+
+non terminal rs.etf.pp1.symboltable.concepts.Struct Condition, ConditionRepeatList, ConditionRepeat, CondTerm, CondFactRepeatList;
+non terminal rs.etf.pp1.symboltable.concepts.Struct CondFact, OptRelopExpr, OptMinus, CondFactRepeat;
+
+non terminal IfStart IfStart;
 
 /*******************************************
 ********    Gramatika jezika    ************
@@ -291,8 +286,8 @@ FormParsRepeat ::= (FormParsRepeat) OP_COMMA FormParDecl:F1 {: RESULT=new FormPa
 // deklaracija iskaza
 
 Statement ::= (StatementDesignator) DesignatorStatement:D1 OP_SEMICOLN {: RESULT=new StatementDesignator(D1); RESULT.setLine(D1left); :}
-            | (IfElseStatement)     IF OP_L_PARENTHESES Condition:C1 OP_R_PARENTHESES Statement:S2 ELSE Statement:S3 {: RESULT=new IfElseStatement(C1, S2, S3); RESULT.setLine(C1left); :}
-            | (IfStatement)         IF OP_L_PARENTHESES Condition:C1 OP_R_PARENTHESES Statement:S2 {: RESULT=new IfStatement(C1, S2); RESULT.setLine(C1left); :}
+            | (IfElseStatement)     IfStart:I1 OP_L_PARENTHESES Condition:C2 OP_R_PARENTHESES Statement:S3 ELSE Statement:S4 {: RESULT=new IfElseStatement(I1, C2, S3, S4); RESULT.setLine(I1left); :}
+            | (IfStatement)         IfStart:I1 OP_L_PARENTHESES Condition:C2 OP_R_PARENTHESES Statement:S3 {: RESULT=new IfStatement(I1, C2, S3); RESULT.setLine(I1left); :}
             | (DoWhileStatement)    DoWhileBegin:D1 Statement:S2 DoWhileEnd:D3 OP_L_PARENTHESES Condition:C4 OP_R_PARENTHESES OP_SEMICOLN {: RESULT=new DoWhileStatement(D1, S2, D3, C4); RESULT.setLine(D1left); :}
             | (BreakStatement)      BREAK OP_SEMICOLN {: RESULT=new BreakStatement(); :}
             | (ContinueStatement)   CONTINUE OP_SEMICOLN {: RESULT=new ContinueStatement(); :}
@@ -302,6 +297,8 @@ Statement ::= (StatementDesignator) DesignatorStatement:D1 OP_SEMICOLN {: RESULT
             | (EnclosedStatement)   OP_L_BRACE_PARENTHESES StatementList:S1 OP_R_BRACE_PARENTHESES {: RESULT=new EnclosedStatement(S1); RESULT.setLine(S1left); :}
             ;
 
+IfStart ::= (IfStart) IF {: RESULT=new IfStart(); :};
+
 StatementList ::= (StatementListDeclared) StatementList:S1 Statement:S2 {: RESULT=new StatementListDeclared(S1, S2); RESULT.setLine(S1left); :}
                 | (StatementListEpsilon) {: RESULT=new StatementListEpsilon(); :}/*epsilon*/ ;
 
@@ -309,15 +306,15 @@ StatementList ::= (StatementListDeclared) StatementList:S1 Statement:S2 {: RESUL
 DoWhileBegin ::= (DoWhileBegin) DO {: RESULT=new DoWhileBegin(); :} ;
 DoWhileEnd ::= (DoWhileEnd) WHILE {: RESULT=new DoWhileEnd(); :} ;
 
-OptPrintNumConst ::=  (OptPrintNumConstDeclared) OP_COMMA NUM_CONST:N1 {: RESULT=new OptPrintNumConstDeclared(N1); RESULT.setLine(N1left); :}
+OptPrintNumConst ::=  (OptPrintNumConstDeclared) OP_COMMA NUM_CONST:numConst {: RESULT=new OptPrintNumConstDeclared(numConst); RESULT.setLine(numConstleft); :}
                     | (OptPrintNumConstEpsilon) {: RESULT=new OptPrintNumConstEpsilon(); :} /*epsilon*/
                     ;
 
 OptExpr ::= (OptExprDeclared) Expr:E1 {: RESULT=new OptExprDeclared(E1); RESULT.setLine(E1left); :} | (OptExprEpsilon) {: RESULT=new OptExprEpsilon(); :} /*epsilon*/ ;
 
-OptElseStatement ::=  (OptElseStatementDeclared) ELSE Statement:S1 {: RESULT=new OptElseStatementDeclared(S1); RESULT.setLine(S1left); :}
-                    | (OptElseStatementEpsilon) {: RESULT=new OptElseStatementEpsilon(); :}/* epsilon */
-                     ;
+OptElseStatement ::=    (OptElseStatementDeclared) ELSE Statement:S1 {: RESULT=new OptElseStatementDeclared(S1); RESULT.setLine(S1left); :}
+                        | (OptElseStatementEpsilon) {: RESULT=new OptElseStatementEpsilon(); :}/* epsilon */
+                        ;
 
 DesignatorStatement ::=     (DesignatorStatementAssign)     Designator:D1 OP_EQUAL Expr:E2 {: RESULT=new DesignatorStatementAssign(D1, E2); RESULT.setLine(D1left); :}
                         |   (DesignatorStatementActualPars) Designator:D1 OP_L_PARENTHESES OptActPars:O2 OP_R_PARENTHESES {: RESULT=new DesignatorStatementActualPars(D1, O2); RESULT.setLine(D1left); :}

@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 19/4/2018 17:58:3
+// 22/4/2018 18:10:39
 
 
 package ba140645d.mjcompiler.ast;
@@ -9,10 +9,10 @@ public class CondFact implements SyntaxNode {
 
     private SyntaxNode parent;
     private int line;
+    public rs.etf.pp1.symboltable.concepts.Struct struct = null;
+
     private Expr Expr;
     private OptRelopExpr OptRelopExpr;
-
-    public rs.etf.pp1.symboltable.concepts.Struct struct;
 
     public CondFact (Expr Expr, OptRelopExpr OptRelopExpr) {
         this.Expr=Expr;
