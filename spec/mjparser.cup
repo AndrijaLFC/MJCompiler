@@ -114,7 +114,7 @@ non terminal ProgramName, ClassName;
 
 
 
-non terminal OptExpr, OptPrintNumConst,  OptArrExpr, ConstDefinition;
+non terminal OptPrintNumConst, ConstDefinition;
 non terminal VarDeclDefinition;
 
 non terminal MethodName ;
@@ -136,15 +136,19 @@ non terminal ba140645d.mjcompiler.utilities.StructLinkedList ActPars;
 non terminal ba140645d.mjcompiler.utilities.StructLinkedList ActParsRepeatList;
 non terminal ba140645d.mjcompiler.utilities.StructLinkedList OptActPars;
 non terminal rs.etf.pp1.symboltable.concepts.Struct ActParsRepeat;
+non terminal rs.etf.pp1.symboltable.concepts.Struct OptArrExpr;
 
 non terminal rs.etf.pp1.symboltable.concepts.Struct Expr, Term, AddopTermList;
 non terminal rs.etf.pp1.symboltable.concepts.Struct Factor, MulopFactorList;
 non terminal rs.etf.pp1.symboltable.concepts.Struct MulopFactor;
 non terminal rs.etf.pp1.symboltable.concepts.Struct Mulop;
 non terminal rs.etf.pp1.symboltable.concepts.Struct AddopTerm, Addop;
+non terminal rs.etf.pp1.symboltable.concepts.Struct OptExpr;
 
 non terminal rs.etf.pp1.symboltable.concepts.Struct Condition, ConditionRepeatList, ConditionRepeat, CondTerm, CondFactRepeatList;
 non terminal rs.etf.pp1.symboltable.concepts.Struct CondFact, OptRelopExpr, OptMinus, CondFactRepeat;
+
+
 /*******************************************
 ********    Gramatika jezika    ************
 ********************************************/

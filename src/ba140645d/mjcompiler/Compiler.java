@@ -45,6 +45,12 @@ public class Compiler{
 
             SyntaxNode root = (SyntaxNode)symbol.value;
 
+            if (!(root instanceof  Program)) {
+                log.error("Sintaksna greska! Prevodjenje se ne moze nastaviti");
+
+                return;
+            }
+
             Program program = (Program)root;
 
             log.info(program.toString(""));

@@ -40,6 +40,24 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     // objekat pocetnog designatora
     private Obj designatorObj = Tab.noObj;
 
+    // fleg da li smo u petlji
+    private boolean insideLoop = false;
+
+    // fleg koji oznacava da li je program semanticki ispravan
+    private boolean semanticallyCorrect = true;
+
+    // fleg koji oznacava da li je main metoda definisana
+    private boolean mainMethodDefined = false;
+
+
+    /****************************************************************************
+     ****************************************************************************
+     *****************         KONSTANTNE VREDNOSTI         *********************
+     ****************************************************************************
+     ****************************************************************************/
+
+    private static final String MAIN_METHOD_NAME = "main";
+
     private static final String ARR_INDEX_TYPE_ERR = "Indeks niza mora biti tipa Int!";
 
     private static final String NOT_ARR_TYPE_ERR_MSG = "Tip mora biti niz!";
@@ -48,8 +66,31 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
     private static final String REF_TYPE_RELOP_ERR_MSG = "Nedozvoljen relacioni operator za reference";
 
+    private static final String BREAK_STMT_ERR_MSG = "Break naredba se moze koristiti samo u petlji!";
 
+    private static final String CONTINUE_STMT_ERR_MSG = "Continue naredba se moze koristiti samo u petlji!";
 
+    private static final String READ_FUNC_PAR_ERR_MSG = "Funkcija read prima parametar koji je promenljiva, element niza ili polje klase!";
+
+    private static final String READ_FUNC_TYPE_ERR_MSG = "Tip promenljive mora biti Int, Char ili Bool!";
+
+    private static final String PRINT_FUNC_EXPR_ERR_MSG = "Parametar mora biti tipa Int, Char ili Bool!";
+
+    private static final String FUNC_RETURN_TYPE_ERR_MSG = "Pogresna povratna vrednost u return naredbi!";
+
+    private static final String NEW_CLASS_TYPE_ERR_MSG = "Naredba new ocekuje unutrasnju klasu!";
+
+    private static final String MAIN_METHOD_UNDEFINED_ERR_MSG = "Metoda " + MAIN_METHOD_NAME + " nije definisana!";
+
+    private static final String MAIN_METHOD_PARAM_NUM_ERR_MSG = "Metoda " + MAIN_METHOD_NAME + " ne sme imati argumente!";
+
+    private static final String MAIN_METHOD_RETURN_TYPE_ERR_MSG = "Metoda " + MAIN_METHOD_NAME + " mora imati void povratni tip!";
+
+    /****************************************************************************
+     ****************************************************************************
+     ****************        KONSTRUKTOR  I JAVNE METODE         ****************
+     ****************************************************************************
+     ****************************************************************************/
 
     public SemanticAnalyzer(){
         Tab.init();
@@ -58,6 +99,20 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         Tab.currentScope().addToLocals(new Obj(Obj.Type, "bool", boolType));
     }
 
+    /**
+     *  Vraca vrednost true ukoliko je program semanticki ispravan
+     * @return da li je semanticki ispravno
+     */
+    public boolean isSemanticallyCorrect(){
+        return semanticallyCorrect;
+    }
+
+
+    /****************************************************************************
+     ****************************************************************************
+     *******************          PRIVATNE METODE           *********************
+     ****************************************************************************
+     ****************************************************************************/
 
     private boolean isDefinedInCurrentScope(String symName){
         return Tab.currentScope().findSymbol(symName) != null;
@@ -93,6 +148,9 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
     private void logError(String message, SyntaxNode node){
         String lineInfo = "Greska na liniji (" + node.getLine() + "): ";
+
+        semanticallyCorrect = false;
+
         System.err.println(lineInfo + message);
     }
 
@@ -125,6 +183,13 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     private String formatWrongTypeMessage(Struct expectedType, Struct actualType){
         String expectedTypeName = symbolTypeToString(expectedType.getKind());
         String actualTypeName = symbolTypeToString(actualType.getKind());
+
+        if (expectedType.getKind() == Struct.Array)
+            expectedTypeName += " of " + symbolTypeToString(expectedType.getElemType().getKind());
+
+        if (actualType.getKind() == Struct.Array)
+            actualTypeName += " of " + symbolTypeToString(actualType.getElemType().getKind());
+
 
         return "Tip je : {" + actualTypeName +"}. Ocekivan tip je : {" + expectedTypeName + "} ";
     }
@@ -345,6 +410,12 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     }
 
 
+    /****************************************************************************
+     ****************************************************************************
+     *******************       VISIT METODE ZA PROGRAM       ********************
+     **********************    KONSTANTE I PROMENLJIVE     **********************
+     ****************************************************************************/
+
     @Override
     public void visit(Program program) {
 
@@ -353,6 +424,9 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         Obj programObj = Tab.find(program.getProgramName().getProgramName());
 
         logInfo(formatSymbolInfo(programObj), program);
+
+        if (!mainMethodDefined)
+            logError(MAIN_METHOD_UNDEFINED_ERR_MSG, program);
 
         // ulancamo u njega sve lokalne simbole
         Tab.chainLocalSymbols(programObj);
@@ -468,8 +542,8 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         }
 
         // vracamo se takodje i ako nismo naisli na validan tip podatka
-        if (currentTypeObj == Tab.noObj)
-            return;
+        //if (currentTypeObj == Tab.noObj)
+        //    return;
 
         boolean isArrayDecl = (varDeclDefinition.getOptArrayDecl() instanceof OptArrayDeclared);
 
@@ -510,6 +584,9 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         else
             currentMethod = Tab.insert(Obj.Meth, name, currentTypeStruct);
 
+        if (currentMethod != Tab.noObj)
+            mainMethodDefined = name.equals(MAIN_METHOD_NAME);
+
         // otvorimo opseg
         Tab.openScope();
     }
@@ -525,10 +602,21 @@ public class SemanticAnalyzer extends VisitorAdaptor{
             // postavljamo broj formalnih parametara
             currentMethod.setLevel(currentMethodFormParNum);
 
-            logInfo(formatSymbolInfo(currentMethod), methodDecl);
-           /// logInfo(Integer.toString(currentMethodFormParNum) + " je broj formalnih parametara", methodDecl);
-            //logInfo(for);
+            // proveravamo da li je definisana main metoda
+            boolean isMainMethod = currentMethod.getName().equals(MAIN_METHOD_NAME);
+
+            // proveravamo ispravnost definicije main metode
+            // main metoda ne sme imati argumente i mora imati povratni tip void(Tab.noType)
+            if (isMainMethod && currentMethodFormParNum != 0)
+                logError(MAIN_METHOD_PARAM_NUM_ERR_MSG, methodDecl);
+            else if (isMainMethod && currentMethod.getType() != Tab.noType)
+                logError(MAIN_METHOD_RETURN_TYPE_ERR_MSG, methodDecl);
+            else
+                logInfo(formatSymbolInfo(currentMethod), methodDecl);
         }
+
+        // vratimo currentMethod na pocetnu vrednost
+        currentMethod = Tab.noObj;
 
         // zatvorimo doseg
         Tab.closeScope();
@@ -675,6 +763,30 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         //logInfo(designatorRepeatField.getFieldName(), designatorRepeatField);
     }
 
+    /***********************************************************************************
+     ***********************************************************************************
+     ********************       VISIT METODE NAREDBI DESIGNATORA       *****************
+     ***********************************************************************************
+     ***********************************************************************************/
+
+
+    @Override
+    public  void visit(DesignatorStatementAssign assignStatement){
+        // promenljiva kojoj dodeljujemo vrednost
+        Obj designatorObj = assignStatement.getDesignator().obj;
+
+        // tip rezultata izraza
+        Struct exprType = assignStatement.getExpr().struct;
+
+        // tip promenljive
+        Struct designatorType = designatorObj.getType();
+
+        // ukoliko nisu kompatabilni pri dodeli prijavi se greska
+        if (!designatorType.assignableTo(exprType)){
+            logError(formatWrongTypeMessage(designatorType, exprType), assignStatement.getExpr());
+        }
+    }
+
 
     @Override
     public void visit(DesignatorStatementActualPars designatorFuncCall){
@@ -685,9 +797,38 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
             return;
         }
+
         checkFuncFormalAndActualPars(designatorFuncCall.getOptActPars().structlinkedlist, funcObj, designatorFuncCall);
     }
 
+    @Override
+    public void visit(DesignatorStatementIncrement statementIncrement){
+        // objekat promenljive
+        Obj designatorObj = statementIncrement.getDesignator().obj;
+
+        // tip promenljive
+        Struct designatorType = designatorObj.getType();
+
+        // ako nije tipa int, prijaviti gresku
+        if (designatorType.getKind() !=  Struct.Int){
+            logError(formatWrongSymbolKindMessage(designatorType.getKind(), Struct.Int), statementIncrement.getDesignator());
+        }
+    }
+
+
+    @Override
+    public void visit(DesignatorStatementDecrement statementDecrement){
+        // objekat promenljive
+        Obj designatorObj = statementDecrement.getDesignator().obj;
+
+        // tip promenljive
+        Struct designatorType = designatorObj.getType();
+
+        // ako nije tipa int, prijaviti gresku
+        if (designatorType.getKind() !=  Struct.Int){
+            logError(formatWrongSymbolKindMessage(designatorType.getKind(), Struct.Int), statementDecrement.getDesignator());
+        }
+    }
 
 
     /**********************************************************************
@@ -732,8 +873,6 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
     @Override
     public void visit(AddopTermListEpsilon addopTermListEpsilon){
-        // podrazumevamo da kada je u pitanju epsilon smena
-        // da tada kao da mnozimo sa * 1 odnosno sabiramo sa 0
         addopTermListEpsilon.struct = null;
     }
 
@@ -839,12 +978,45 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
     @Override
     public void visit(FactorNew factorNew){
-        factorNew.struct = Tab.noType;
+
+
+        factorNew.struct = currentTypeStruct;
+
+        // tip rezultata izraza, ukolko je naveden dobicemo vrednost != null
+        Struct exprType = factorNew.getOptArrExpr().struct;
+
+        if (exprType == null){
+            if (currentTypeStruct.getKind() != Struct.Class){
+                logError(NEW_CLASS_TYPE_ERR_MSG, factorNew);
+            }
+
+            return;
+        }
+
+
+        factorNew.struct = new Struct(Struct.Array, currentTypeStruct);
+
+        // nije u pitanju kreiranje klase vec niza elemenata
+        // proveravamo da li je velicina niza int
+        if (exprType != Tab.intType){
+            logError(formatWrongTypeMessage(Tab.intType, exprType), factorNew);
+        }
     }
 
     @Override
     public void visit(FactorExpr factorExpr) {
         factorExpr.struct = factorExpr.getExpr().struct;
+    }
+
+
+    @Override
+    public void visit(OptExprDeclared optExpr){
+        optExpr.struct = optExpr.getExpr().struct;
+    }
+
+    @Override
+    public void visit(OptExprEpsilon optExpr){
+        optExpr.struct = Tab.noType;
     }
 
 
@@ -962,6 +1134,15 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     }
 
 
+    @Override
+    public void visit(OptArrExprDeclared arrSizeExpr){
+        arrSizeExpr.struct = arrSizeExpr.getExpr().struct;
+    }
+
+    @Override
+    public void visit(OptArrExprEpsilon epsilonArrExpr){
+        epsilonArrExpr.struct = null;
+    }
 
     /**********************************************************************
      **********************************************************************
@@ -1010,7 +1191,6 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         actParsRepeatListDeclared.structlinkedlist = actParsRepeatListDeclared.getActParsRepeatList().structlinkedlist;
 
         actParsRepeatListDeclared.structlinkedlist.add(actParsRepeatListDeclared.getActParsRepeat().struct);
-
     }
 
 
@@ -1029,6 +1209,83 @@ public class SemanticAnalyzer extends VisitorAdaptor{
      ******************      VISIT METODE NAREDBI     *********************
      **********************************************************************
      ********************************************************************/
+
+
+    @Override
+    public void visit(DoWhileBegin loopBegin){
+        insideLoop = true;
+    }
+
+    @Override
+    public void visit(DoWhileEnd loopEnd){
+        insideLoop = false;
+    }
+
+
+    @Override
+    public void visit(BreakStatement breakStatement){
+        if (!insideLoop)
+            logError(BREAK_STMT_ERR_MSG, breakStatement);
+    }
+
+    @Override
+    public void visit(ContinueStatement continueStatement){
+        if (!insideLoop)
+            logError(CONTINUE_STMT_ERR_MSG, continueStatement);
+    }
+
+    @Override
+    public void visit(ReturnStatement returnStatement){
+        // ako nije metoda definisana vratimo se nazad
+        if (currentMethod == Tab.noObj)
+            return;
+
+        // dohvatimo tip povratne vrednosti
+        Struct returnValueType = returnStatement.getOptExpr().struct;
+
+        // ukoliko tipovi nisu jednaki, onda prijavimo gresku
+        if (!returnValueType.compatibleWith(currentMethod.getType()))
+            logError(FUNC_RETURN_TYPE_ERR_MSG + " " + formatWrongTypeMessage(currentMethod.getType(), returnValueType), returnStatement);
+    }
+
+    @Override
+    public void visit(ReadStatement readStatement){
+        // promenljiva u koju treba upisati rezultat read fje
+        Obj designatorObj = readStatement.getDesignator().obj;
+
+        // vrsta promenljive
+        int designatorKind = designatorObj.getKind();
+
+        // tip promenljive
+        Struct designatorType = designatorObj.getType();
+
+        // promenljiva nije odgovarajuce vrste
+        if (!(designatorKind == Obj.Var || designatorKind == Obj.Fld || designatorKind == Obj.Elem)){
+            logError(READ_FUNC_PAR_ERR_MSG, readStatement);
+
+            return;
+        }
+
+        if (!(designatorType == boolType || designatorType == Tab.intType || designatorType == Tab.charType))
+            logError(READ_FUNC_TYPE_ERR_MSG, readStatement);
+
+    }
+
+    @Override
+    public void visit(PrintStatement printStatement){
+        // tip rezultata izraza
+        Struct exprType = printStatement.getExpr().struct;
+
+        // dozvoljeni tip izraza je bool, int i char
+        if (exprType != boolType && exprType != Tab.intType && exprType != Tab.charType) {
+            logError(PRINT_FUNC_EXPR_ERR_MSG, printStatement);
+
+            return;
+        }
+    }
+
+
+
 
 
 
