@@ -8,6 +8,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 import rs.etf.pp1.symboltable.Tab;
 import rs.etf.pp1.symboltable.concepts.Obj;
+import rs.etf.pp1.symboltable.visitors.SymbolTableVisitor;
 
 import java.io.*;
 
@@ -25,6 +26,17 @@ public class Compiler{
     static {
         DOMConfigurator.configure(Log4JUtil.instance().findLoggerConfigFile());
         Log4JUtil.instance().prepareLogFile(Logger.getRootLogger());
+    }
+
+    private static final SymbolTableVisitor symbolTableVisitor = new ba140645d.mjcompiler.utilities.SymbolTableVisitor();
+
+    public static void tsdump(){
+        Tab.dump(symbolTableVisitor);
+    }
+    private Symbol syntaxCheck(Yylex lexer) throws Exception {
+        Parser parser = new Parser(lexer);
+
+        return parser.parse();
     }
 
     public static void main(String[] args) throws Exception {
@@ -58,6 +70,15 @@ public class Compiler{
             SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
 
             root.traverseBottomUp(semanticAnalyzer);
+
+            if (semanticAnalyzer.isSemanticallyCorrect() == false){
+                log.error("Semanticka greska! Prevodjenje se ne moze nastaviti");
+
+                return;
+            }
+
+            tsdump();
+
 
 
 

@@ -16,9 +16,9 @@ import java.util.Iterator;
 public class SemanticAnalyzer extends VisitorAdaptor{
 
     // kod za Bool tip
-    private static final int Bool = 5;
+    public static final int Bool = 5;
 
-    private static final Struct boolType = new Struct(Bool);
+    public static final Struct boolType = new Struct(Bool);
     // da li je semanticka provera
     private boolean semanticCheck = true;
 
@@ -496,7 +496,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
                 value = ((CharConst) constValue).getCharConst();
             }else if (constValue instanceof BoolConst){
-                rightSide = Tab.find("bool").getType();
+                rightSide = boolType;
 
                 value = ((BoolConst) constValue).getBoolConst()  ? 1 : 0;
             }
@@ -1310,7 +1310,6 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         }
     }
 
-
     @Override
     public void visit(IfStart ifStart){
         // uvecavamo ugnjezdenje if-a
@@ -1319,11 +1318,13 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
     @Override
     public void visit(IfElseStatement ifElseStatement){
+        // zavrsili smo sa if-om, smanjiti nivo ugnezdavanja
         ifLevel--;
     }
 
     @Override
     public void visit(IfStatement ifStatement){
+        // zavrsili smo sa if-om, smanjiti nivo ugnezdavanja
         ifLevel--;
     }
 }

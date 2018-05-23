@@ -35,10 +35,32 @@ bool boolArr[];
 
         void main()
         int arr[], i, maxNum;
+        char helloWorld[];
         {
             arr = new int[10];
+            helloWorld = new char[11];
+
+            helloWorld[0] = "H";
+            helloWorld[1] = "e";
+            helloWorld[2] = "l";
+            helloWorld[3] = "l";
+            helloWorld[4] = "o";
+            helloWorld[5] = " ";
+            helloWorld[6] = "w";
+            helloWorld[7] = "o";
+            helloWorld[8] = "r";
+            helloWorld[9] = "l";
+            helloWorld[10] = "d";
+
 
             i = 0;
+
+            do{
+                print(helloWorld[i]);
+                i++;
+            }while(i < 11);
+
+            print(eol);
 
             do
             {
