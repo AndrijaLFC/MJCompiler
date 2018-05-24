@@ -128,6 +128,9 @@ non terminal DoWhileEnd;
 non terminal ClassDefinitionStart;
 non terminal ClassDefinitionEnd;
 
+non terminal Mulop;
+non terminal Addop;
+
 non terminal rs.etf.pp1.symboltable.concepts.Obj Designator, DesignatorRepeatList, DesignatorRepeat;
 non terminal rs.etf.pp1.symboltable.concepts.Obj DesignatorInitialName;
 
@@ -141,8 +144,8 @@ non terminal rs.etf.pp1.symboltable.concepts.Struct OptArrExpr;
 non terminal rs.etf.pp1.symboltable.concepts.Struct Expr, Term, AddopTermList;
 non terminal rs.etf.pp1.symboltable.concepts.Struct Factor, MulopFactorList;
 non terminal rs.etf.pp1.symboltable.concepts.Struct MulopFactor;
-non terminal rs.etf.pp1.symboltable.concepts.Struct Mulop;
-non terminal rs.etf.pp1.symboltable.concepts.Struct AddopTerm, Addop;
+
+non terminal rs.etf.pp1.symboltable.concepts.Struct AddopTerm;
 non terminal rs.etf.pp1.symboltable.concepts.Struct OptExpr;
 
 non terminal rs.etf.pp1.symboltable.concepts.Struct Condition, ConditionRepeatList, ConditionRepeat, CondTerm, CondFactRepeatList;

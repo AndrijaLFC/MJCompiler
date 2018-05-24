@@ -6,6 +6,8 @@ import ba140645d.mjcompiler.utilities.SymbolTableVisitor;
 import rs.etf.pp1.mj.runtime.Code;
 import rs.etf.pp1.symboltable.Tab;
 import rs.etf.pp1.symboltable.concepts.Obj;
+import rs.etf.pp1.symboltable.concepts.Struct;
+import rs.etf.pp1.symboltable.structure.SymbolDataStructure;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,6 +22,9 @@ public class CodeGenerator extends VisitorAdaptor {
     private static final String LEN_METH_NAME = "len";
 
     private static final String MAIN_METH_NAME = "main";
+
+
+    private Obj designatorObj = Tab.noObj;
 
 
     // svi simboli programa
@@ -94,8 +99,13 @@ public class CodeGenerator extends VisitorAdaptor {
         Tab.openScope();
 
         // dodavanje simbola programa u trenutni opseg
-        programSymbols.forEach((symbol)-> Tab.currentScope().addToLocals(symbol));
-
+        // moramo da navedemo koliko prostora treba da zauzimaju globalne promenljive, velicina
+        // se izrazava u recima(jedna rec je 4 bajta)
+        programSymbols.forEach((symbol)->{
+            Tab.currentScope().addToLocals(symbol);
+            if (symbol.getKind() == Obj.Var)
+                Code.dataSize++;
+        });
     }
 
 
@@ -128,6 +138,19 @@ public class CodeGenerator extends VisitorAdaptor {
 
         // pa zatim i ukupan broj simbola
         Code.put(localSymbolNum);
+
+
+        //  otvorimo scope zarad lakse pretrage simbola
+        Tab.openScope();
+
+        // dohvatimo sve simbole metode
+        Collection<Obj> methodSymbols = methodObj.getLocalSymbols();
+
+        // dodamo ih u scope
+        for (Obj methodSymbol : methodSymbols) {
+            Tab.currentScope.addToLocals(methodSymbol);
+        }
+
     }
 
     @Override
@@ -143,5 +166,150 @@ public class CodeGenerator extends VisitorAdaptor {
 
         // vracanje nazad
         Code.put(Code.return_);
+    }
+
+    @Override
+    public void visit(Expr expr){
+
+    }
+
+
+    @Override
+    public void visit(Term term){
+
+    }
+
+    @Override
+    public void visit(AddopTermList addopTermList){
+
+    }
+
+    @Override
+    public void visit(AddopTerm addopTerm){
+
+    }
+
+    @Override
+    public void visit(FactorFuncCallOrVar factor){
+        Obj designatorObj = factor.getDesignator().obj;
+
+
+        if (designatorObj.getKind() == Obj.Meth) {
+            Code.put(Code.call);
+            Code.put2(designatorObj.getAdr());
+        }
+    }
+
+
+    @Override
+    public void visit(FactorConst factorConst){
+        ConstValue constValue = factorConst.getConstValue();
+
+        // objekat konstante
+        Obj constObj = null;
+
+        // proverimo kog je tipa konstanta i kreiramo odgovarajuci simbol
+        if (constValue instanceof NumConst)
+            constObj = new Obj(Obj.Con, "",Tab.intType, ((NumConst) constValue).getNumConst(), 0);
+        else if (constValue instanceof  CharConst)
+            constObj = new Obj(Obj.Con, "", Tab.charType, ((CharConst) constValue).getCharConst(), 0);
+        else if (constValue instanceof  BoolConst)
+            constObj = new Obj(Obj.Con, "", SemanticAnalyzer.boolType, ((BoolConst) constValue).getBoolConst() ? 1 : 0, 0 );
+
+        Code.load(constObj);
+    }
+
+
+    @Override
+    public void visit(FactorNew factorNew){
+
+    }
+
+
+    @Override
+    public void visit(FactorExpr factorExpr){
+
+    }
+
+
+    /****************************************************************************
+     ****************************************************************************
+     *************     VISIT METODE ZA ARITMETICKE OPERACIJE     ****************
+     ****************************************************************************
+     ****************************************************************************/
+
+
+    @Override
+    public void visit(AddopAddition additionOp){
+
+    }
+
+    @Override
+    public void visit(AddopSubtraction subtractionOp){
+
+    }
+
+
+    @Override
+    public void visit(MulopMultiplication multiplicaitonOp){
+
+    }
+
+    @Override
+    public void visit(MulopDivision divisionOp){
+
+    }
+
+    @Override
+    public void visit(MulopModuo moduoOp){
+
+    }
+
+
+    /****************************************************************************
+     ****************************************************************************
+     *************     VISIT METODE ZA PRISTUP PROMENLJIVAMA     ****************
+     *****************************    I FUNKCIJAMA    ***************************
+     ****************************************************************************/
+
+    @Override
+    public void visit(Designator designator){
+        // u pitanju je B nivo, tu imamo samo promenljive i nizove
+        // nema klasa, stoga ne moramo da imamo neki poseban kod za pristup poljima objekata
+        designator.obj = Tab.find(designator.getDesignatorInitialName().getDesignatorName());
+    }
+
+    @Override
+    public void visit(DesignatorInitialName designatorInitialName){
+        String designatorName = designatorInitialName.getDesignatorName();
+
+        designatorObj = Tab.find(designatorName);
+
+
+        // da li je u pitanju designator statement, ako jeste onda ne treba da ucitavamo
+        // vrednost designatora
+        boolean isDesignatorStatementAssignPredecessor = designatorInitialName.getParent().getParent() instanceof DesignatorStatementAssign;
+        // ako nije klasa samo load-ujemo
+        if (designatorObj.getKind() != Obj.Meth && !isDesignatorStatementAssignPredecessor)
+            Code.load(designatorObj);
+    }
+
+    @Override
+    public void visit(DesignatorRepeatExpr designatorArray){
+
+    }
+
+
+    /****************************************************************************
+     ****************************************************************************
+     *********************     VISIT METODE ZA NAREDBE     **********************
+     ****************************************************************************
+     ****************************************************************************/
+
+
+    @Override
+    public void visit(PrintStatement printStatement){
+       // Code.put(Code.call);
+        Code.put(Code.print);
     }
 }
