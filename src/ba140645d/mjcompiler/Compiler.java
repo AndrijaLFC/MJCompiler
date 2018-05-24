@@ -6,6 +6,7 @@ import ba140645d.mjcompiler.ast.SyntaxNode;
 import java_cup.runtime.Symbol;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
+import rs.etf.pp1.mj.runtime.Code;
 import rs.etf.pp1.symboltable.Tab;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.visitors.SymbolTableVisitor;
@@ -28,6 +29,8 @@ public class Compiler{
         Log4JUtil.instance().prepareLogFile(Logger.getRootLogger());
     }
 
+
+    private static final String COMPILER_FORMAT = "<source file> <object file name>";
     private static final SymbolTableVisitor symbolTableVisitor = new ba140645d.mjcompiler.utilities.SymbolTableVisitor();
 
     public static void tsdump(){
@@ -43,8 +46,14 @@ public class Compiler{
         Logger log = Logger.getLogger(Compiler.class);
         Reader bufferReader = null;
 
+        if (args.length != 2){
+            System.err.println(COMPILER_FORMAT);
+            return;
+        }
+
+
         try{
-            File source = new File("test/testProgram2.mj");
+            File source = new File(args[0]);
             log.info("Compiling source file :" + source.getAbsolutePath());
 
             bufferReader = new BufferedReader(new FileReader(source));
@@ -79,9 +88,16 @@ public class Compiler{
 
             tsdump();
 
+            File destObjFile = new File(args[1]);
 
+            if (destObjFile.exists())
+                destObjFile.delete();
 
+            CodeGenerator codeGenerator = new CodeGenerator();
 
+            program.traverseBottomUp(codeGenerator);
+
+            Code.write(new FileOutputStream(destObjFile));
 
         } catch (FileNotFoundException e) {
 

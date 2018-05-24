@@ -1,13 +1,14 @@
 package ba140645d.mjcompiler;
 
 
-import ba140645d.mjcompiler.ast.ProgramName;
-import ba140645d.mjcompiler.ast.VisitorAdaptor;
+import ba140645d.mjcompiler.ast.*;
+import ba140645d.mjcompiler.utilities.SymbolTableVisitor;
 import rs.etf.pp1.mj.runtime.Code;
 import rs.etf.pp1.symboltable.Tab;
 import rs.etf.pp1.symboltable.concepts.Obj;
 
 import java.util.Collection;
+import java.util.HashMap;
 
 public class CodeGenerator extends VisitorAdaptor {
 
@@ -17,6 +18,12 @@ public class CodeGenerator extends VisitorAdaptor {
     private static final String CHR_METH_NAME = "chr";
 
     private static final String LEN_METH_NAME = "len";
+
+    private static final String MAIN_METH_NAME = "main";
+
+
+    // svi simboli programa
+    private HashMap<String, Obj> programSymbols = new HashMap<>();
 
     /**
      * Generise kod za predefinisane metode
@@ -62,16 +69,20 @@ public class CodeGenerator extends VisitorAdaptor {
             // i bp(ovde je to fp) vratimo na prethodnu vrednost
             Code.put(Code.exit);
 
-            // narebom return napustamo funkciju
+            // narebom return napustamo funkciju  pc = pop();
             Code.put(Code.return_);
-
         });
+    }
 
+    @Override
+    public void visit(Program program){
+        Tab.closeScope();
     }
 
     @Override
     public void visit(ProgramName programName){
 
+        // generisanje koda za predefinisane metode
         generateCodeForPredefinedMethods();
 
         Obj programObj = Tab.find(programName.getProgramName());
@@ -79,8 +90,58 @@ public class CodeGenerator extends VisitorAdaptor {
         // simboli iz scope-a programa
         Collection<Obj> programSymbols = programObj.getLocalSymbols();
 
-        for(Obj symbol : programSymbols){
+        // otvaranje opsega zarad lakseg nalazenja simbola
+        Tab.openScope();
 
+        // dodavanje simbola programa u trenutni opseg
+        programSymbols.forEach((symbol)-> Tab.currentScope().addToLocals(symbol));
+
+    }
+
+
+    @Override
+    public void visit(MethodName method){
+        String methodName = method.getMethodName();
+
+        Obj methodObj = Tab.find(methodName);
+
+        // ukoliko je u pitanju main metoda, moramo navesti koja je njena adresa
+        if (methodName.equals(MAIN_METH_NAME)){
+            Code.mainPc = Code.pc;
         }
+
+        // namestamo adresu metode na trenutnu vrednost pc
+        methodObj.setAdr(Code.pc);
+
+        // broj formalnih parametara
+        int paramNum = methodObj.getLevel();
+
+        // ukupan broj lokalnih simbola u metodi( parametri + promenljive)
+        int localSymbolNum = methodObj.getLocalSymbols().size();
+
+        // kod za inicijalizaciju metode pri ulasku, instrukcija ima 2 parametra
+        // broj parametara i ukupan broj lokalnih simbola
+        Code.put(Code.enter);
+
+        // prvo ide broj parametara
+        Code.put(paramNum);
+
+        // pa zatim i ukupan broj simbola
+        Code.put(localSymbolNum);
+    }
+
+    @Override
+    public void visit(MethodDecl methodDecl){
+        // dohvatimo ime metode
+        String methodName = methodDecl.getMethodName().getMethodName();
+
+        // dohvatimo objekat(simbol) metode
+        Obj methodObj = Tab.find(methodName);
+
+        // ciscenje steka od lokalnih simbola
+        Code.put(Code.exit);
+
+        // vracanje nazad
+        Code.put(Code.return_);
     }
 }

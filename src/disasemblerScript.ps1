@@ -1,0 +1,1 @@
+java -cp "C:\Users\Andrija Boricic\Desktop\ETF SI\PP\MJCompiler\lib\mj-runtime.jar" rs.etf.pp1.mj.runtime.disasm "C:\Users\Andrija Boricic\Desktop\ETF SI\PP\MJCompiler\test\testProgram2.obj"
