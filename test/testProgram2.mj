@@ -22,58 +22,48 @@ bool boolArr[];
     void main()
     int i, arr[];
     char helloWorld[];
+    char readEol;
     {
-            if (i == arr[0] && i >= 2 || i == arr[0])
-                print(4);
-              //arr = new int[5];
+            arr = new int[15];
 
-             // helloWorld = new char[11];
+            helloWorld = new char[11];
 
-              //helloWorld[0] = "H";
-              //helloWorld[1] = "e";
-              //helloWorld[2] = "l";
-              //helloWorld[3] = "l";
-              //helloWorld[4] = "o";
-              //helloWorld[5] = " ";
-              //helloWorld[6] = "w";
-              //helloWorld[7] = "o";
-              //helloWorld[8] = "r";
-              //helloWorld[9] = "l";
-              //helloWorld[10] = "d";
+            print("U");
+            print("c");
+            print("i");
+            print("t");
+            print("a");
+            print("j");
+            print(" ");
+            print("c");
+            print("h");
+            print("a");
+            print("r");
+            print(eol);
 
-              //print(helloWorld[0]);
-              //print(helloWorld[1]);
-              //print(helloWorld[2]);
-              //print(helloWorld[3]);
-              //print(helloWorld[4]);
-              //print(helloWorld[5]);
-              //print(helloWorld[6]);
-              //print(helloWorld[7]);
-              //print(helloWorld[8]);
-              //print(helloWorld[9]);
-              //print(helloWorld[10]);
+            i = 0;
+            do{
+                read(helloWorld[i]);
+                if (helloWorld[i] != eol)
+                    i++;
 
-              //print(eol);
+            }while(i < 11);
 
-              //i = 0;
-              arr[0] = 1; // 1
-              arr[1] = 1; // 1
-              arr[2] = arr[0] + arr[1]; // 2
-              arr[3] = arr[2] + arr[1]; // 3
-              arr[4] = arr[3] + arr[2]; // 5
-              i = arr[4] + arr[arr[2]]; // 5 + arr[2] = 2
+            print(eol);
+            print("I");
+            print("s");
+            print("p");
+            print("i");
+            print("s");
+            print(eol);
 
-              arr[0]++;
+            i = 0;
+            do{
+                print(helloWorld[i]);
+                print(eol);
 
-              print(i);
-
-              print(eol);
-
-              print(arr[0]);
-
-              print(eol);
-
-              print(test_func(arr));
+                i++;
+            }while(i < 11);
     }
 }
 

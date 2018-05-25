@@ -44,7 +44,7 @@ bool boolArr[];
             helloWorld[1] = "e";
             helloWorld[2] = "l";
             helloWorld[3] = "l";
-            elloWorld[4] = "o";
+            helloWorld[4] = "o";
             helloWorld[5] = " ";
             helloWorld[6] = "w";
             helloWorld[7] = "o";

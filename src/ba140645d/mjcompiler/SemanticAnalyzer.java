@@ -554,11 +554,11 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         if (isDefinedInCurrentScope(varName)) {
             logError("Simbol[" + varName + "] je vec definisan u trenutnom opsegu!", varDeclDefinition);
             return;
+        }else if (currentMethod != Tab.noObj && varName.equals(currentMethod.getName())){
+            logError(formatSymbolName(varName) + " je vec definisan u trenutnom opsegu!", varDeclDefinition);
+            return;
         }
 
-        // vracamo se takodje i ako nismo naisli na validan tip podatka
-        //if (currentTypeObj == Tab.noObj)
-        //    return;
 
         boolean isArrayDecl = (varDeclDefinition.getOptArrayDecl() instanceof OptArrayDeclared);
 
@@ -607,6 +607,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
         // otvorimo opseg
         Tab.openScope();
+
     }
 
     @Override

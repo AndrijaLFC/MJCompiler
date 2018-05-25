@@ -1,0 +1,41 @@
+program P
+const int size = 10;
+const bool isTrue = true;
+const char robi = "R";
+char lent;
+const bool intBool = true;
+int arr[];
+bool boolArr[];
+{
+
+    int test()
+    {
+        return 1;
+    }
+
+    int test_func(int arr[])
+    {
+        arr[0]++;
+        return arr[0];
+    }
+
+    void main()
+    int i, arr[];
+    char helloWorld[];
+    {
+            if (i == arr[0] && i >= 2 || i == arr[0])
+                print(4);
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+

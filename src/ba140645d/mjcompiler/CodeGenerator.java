@@ -30,6 +30,8 @@ public class CodeGenerator extends VisitorAdaptor {
 
     private static final Obj num1constObj = new Obj(Obj.Con, "", Tab.intType, 1, 0);
 
+    private static final Obj num0constObj = new Obj(Obj.Con, "", Tab.intType, 0, 0);
+
 
     // stek koji pamti mesta za prepravljanje adresa skokova
     // gde treba da skocimo ako je uslov true
@@ -39,8 +41,27 @@ public class CodeGenerator extends VisitorAdaptor {
     // gde treba da skocimo ako je uslov false
     private Stack<List<Integer>> falsePatchStack = new Stack<>();
 
+    // pamti se adresa za prepravljanje, gde se nakon zavrsetka then grane
+    // skace na kraj if/else
+    private Stack<Integer> thenJumpPatchStack = new Stack<>();
+
+
+    // pamcenje adrese pocetka naredbi  do-while petlje
+    private Stack<Integer> whileBeginStack = new Stack<>();
+
+    // pamcenje adrese kraja naredbi do-while petlje
+    private Stack<Integer> whileEndStack = new Stack<>();
+
+    // stek na kome cemo pamtiti adrese gde se javlja naredba break
+    private Stack<List<Integer>> breakStatementAdrStack = new Stack<>();
+
+    // stek na kome cemo pamtiti adrese na kojima se javlja naredba continue;
+    private Stack<List<Integer>> continueStatementAdrStack = new Stack<>();
+
     // svi simboli programa
     private HashMap<String, Obj> programSymbols = new HashMap<>();
+
+
 
     /**
      * Generise kod za predefinisane metode
@@ -130,11 +151,35 @@ public class CodeGenerator extends VisitorAdaptor {
         return Code.eq;
     }
 
-    private void adrPatching(CondFact condFact){
-        // adresa na koju treba da skoce svi uslovi koji su ispunili true
-        int fixupAdr  = Code.pc;
+    /**
+     * Prepravlja relativni skok na adresama datim u listi
+     * @param adrsToFixupList lista adresa gde treba prepravljati
+     */
+    private void fixupAddresses(List<Integer> adrsToFixupList){
+        for(Integer adrToFixup : adrsToFixupList)
+            Code.fixup(adrToFixup);
+    }
+
+
+    /**
+     * Metoda koja prepravlja adrese koje treba da skoce na pocetak do/while petlje
+     * @param adrsToPatchList lista adresa za prepravljanje
+     */
+    private void doWhileFixup(List<Integer> adrsToPatchList, int doWhileStartAdr){
+
+        for(int adrToPatch : adrsToPatchList)
+            Code.put2(adrToPatch, doWhileStartAdr - Code.pc + 1);
 
     }
+
+    /**
+     * Metoda koja prepravlja adresu koja treba da skoci na pocetak do/while petlje
+     * @param adrToPatch adresa koja se prepravlja
+     */
+    private void doWhileFixup(int adrToPatch){
+        Code.put2(adrToPatch, adrToPatch - Code.pc + 1);
+    }
+
     @Override
     public void visit(Program program){
         Tab.closeScope();
@@ -378,8 +423,8 @@ public class CodeGenerator extends VisitorAdaptor {
     @Override
     public void visit(CondFact condFact){
 
-        // podrazumevano je poredjenje eq, za slucaj kada je promenljiva samo boolean
-        int relopCode = Code.eq;
+        // podrazumevano je poredjenje ne, za slucaj kada je promenljiva samo boolean
+        int relopCode = Code.ne;
 
         if (condFact.getOptRelopExpr() instanceof  OptRelopExprDeclared)
             relopCode = getRelopCode(((OptRelopExprDeclared) condFact.getOptRelopExpr()).getRelop());
@@ -390,11 +435,37 @@ public class CodeGenerator extends VisitorAdaptor {
         falsePatchStack.peek().add(Code.pc - 2);
     }
 
+    @Override
+    public void visit(LogicalOr logicalOr){
+        // stavljamo instrukciju jump, nakon sto obradimo sve uslove
+        // prepravicemo samu adresu na koju skacemo
+        Code.putJump(0);
+
+        // adresa za prepravljanje je trenutna - 2 ( da se pozicioniramo na mesto gde
+        // treba da se ubaci odgovarajuci pomeraj
+        truePatchStack.peek().add(Code.pc - 2);
+
+        // treba da prepravimo sve false skokove, i da stavimo
+        // da skacu na pocetak ispitivanja trenutnog izraza
+        for(Integer adrForPatching : falsePatchStack.peek()){
+            Code.fixup(adrForPatching);
+        }
+
+        falsePatchStack.peek().clear();
+    }
+
+
+    @Override
+    public void visit(LogicalAnd logicalAnd){
+
+    }
+
 
 
     @Override
     public void visit(OptRelopExprEpsilon exprEpsilon){
-        loadDesignator(num1constObj);
+        // sa desne strane nema nikakav izraz, stoga levu stranu poredimo sa 0
+        loadDesignator(num0constObj);
     }
 
 
@@ -496,7 +567,6 @@ public class CodeGenerator extends VisitorAdaptor {
 
         // sacuvamo u element niza
         storeDesignator(incrementStmt.getDesignator().obj);
-
     }
 
     @Override
@@ -506,5 +576,165 @@ public class CodeGenerator extends VisitorAdaptor {
 
         // isto kao gore, ali za skok ako je uslov netacan if/else/while
         falsePatchStack.add(new LinkedList<>());
+
     }
+
+    @Override
+    public void visit(IfElseStatement ifElseStatement){
+
+        // prepravljamo skok
+        Code.fixup(thenJumpPatchStack.pop());
+
+        truePatchStack.pop();
+        falsePatchStack.pop();
+    }
+
+    @Override
+    public void visit(ElseStart elseStart){
+        List<Integer> adrsToPatchList = falsePatchStack.peek();
+
+        // treba izaci iz then, znaci treba nam relativni skok na kraj else grane
+        Code.putJump(0);
+
+        // nakon sto se zavrsi then treba skociti na kraju if/else kontrole toka
+        thenJumpPatchStack.push(Code.pc - 2);
+
+
+        fixupAddresses(adrsToPatchList);
+    }
+
+    @Override
+    public void visit(IfStatement ifStatement){
+
+        List<Integer> adrsToPatchList = falsePatchStack.peek();
+
+
+        fixupAddresses(adrsToPatchList);
+
+        truePatchStack.pop();
+        falsePatchStack.pop();
+    }
+
+    @Override
+    public void visit(ThenStart thenStart){
+        // ispravljamo samo TRUE skokove, jer treba da udjemo u then granu
+        List<Integer> adrsToPatchlist = truePatchStack.peek();
+
+
+        fixupAddresses(adrsToPatchlist);
+    }
+
+    @Override
+    public void visit(DoWhileStatement doWhileStatement){
+
+        // stavljamo skok na adresu koja ukazuje na pocetak do/while petlje
+        // ovo radimo jer name je poslednja instrukcija false jump
+        // stoga ako se nije desio skok treba da se vratimo na pocetak do/while
+        Code.putJump(whileBeginStack.peek());
+
+        // na kraju treba obraditi sve true i false skokove, kao i break naredbe
+
+
+        // za razliku od if/else, ako je skok true, skacemo na pocetak do/while-a
+        List<Integer> adrsToPatchList = truePatchStack.pop();
+
+        doWhileFixup(adrsToPatchList, whileBeginStack.peek());
+
+
+        // kod false skokova, treba da skacemo napred
+        fixupAddresses(falsePatchStack.pop());
+
+        // i na kraju break
+        fixupAddresses(breakStatementAdrStack.pop());
+
+        // i sklonimo liste i podatke vezane za najugnjezdeniji do/while
+        continueStatementAdrStack.pop();
+
+        whileBeginStack.pop();
+
+        whileEndStack.pop();
+    }
+    @Override
+    public void visit(DoWhileBegin doWhileBegin){
+        // postavljamo na stek trenutnu vrednost PC-a
+        // trenutna vrednost PC-a pokazuje na prvu instrukciju
+        // u petli
+        whileBeginStack.push(Code.pc);
+
+        // kreiramo listu adresa za break naredbe
+        breakStatementAdrStack.push(new LinkedList<>());
+
+        // kreiramo listu adresa za continue naredbe
+        continueStatementAdrStack.push(new LinkedList<>());
+
+        // napravimo listu za prepravljanje adresa kod skokova
+        truePatchStack.push(new LinkedList<>());
+
+        // napravimo listu za prepravljanje adresa kod skokova
+        falsePatchStack.push(new LinkedList());
+
+
+
+    }
+
+    @Override
+    public void visit(DoWhileEnd doWhileEnd){
+        // postavljamo na stek trenutnu vrednost PC-a
+        // trenutna vrednost PC-a pokazuje na instrukciju nakon poslednje naredbe
+        // u petlji
+        whileEndStack.push(Code.pc);
+
+
+
+        // treba obraditi sve continue naredbe
+        List<Integer> adrsToPatchList = continueStatementAdrStack.peek();
+
+        // kod continue uvek skacemo napred
+        fixupAddresses(adrsToPatchList);
+
+        // obrisemo sve prepravljene adrese
+        adrsToPatchList.clear();
+    }
+
+    @Override
+    public void visit(BreakStatement breakStatement){
+        // stavimo instrukciju za skok
+        Code.putJump(Code.pc);
+
+        // ubacimo adresu koju treba prepraviti
+        breakStatementAdrStack.peek().add(Code.pc - 2);
+    }
+
+    @Override
+    public void visit(ContinueStatement continueStatement){
+        // stavimo instrukciju za skok
+        Code.putJump(Code.pc);
+
+        // ubacimo adresu koju treba prepraviti
+        continueStatementAdrStack.peek().add(Code.pc - 2);
+    }
+
+    @Override
+    public void visit(ReturnStatement returnStatement){
+        Code.put(Code.exit);
+        Code.put(Code.return_);
+    }
+
+    @Override
+    public void visit(ReadStatement readStatement){
+        Obj designatorObj = readStatement.getDesignator().obj;
+
+
+        // char i boolean su bajtovski podaci
+        if (designatorObj.getType() == Tab.intType)
+            Code.put(Code.read);
+        else
+            Code.put(Code.bread);
+
+        // sacuvamo u zeljeni objekat
+        storeDesignator(designatorObj);
+    }
+
+
+
 }

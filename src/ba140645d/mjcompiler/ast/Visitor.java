@@ -1,46 +1,46 @@
 // generated with ast extension for cup
 // version 0.8
-// 24/4/2018 15:22:6
+// 25/4/2018 20:21:42
 
 
 package ba140645d.mjcompiler.ast;
 
 public interface Visitor { 
 
-    public void visit(ConstDeclRepeatList ConstDeclRepeatList);
-    public void visit(ReturnType ReturnType);
     public void visit(ConditionRepeatList ConditionRepeatList);
-    public void visit(FormParsRepeatList FormParsRepeatList);
-    public void visit(Mulop Mulop);
-    public void visit(OptPrintNumConst OptPrintNumConst);
-    public void visit(OptParenthesesActPars OptParenthesesActPars);
-    public void visit(Relop Relop);
-    public void visit(MulopFactorList MulopFactorList);
-    public void visit(OptFormPars OptFormPars);
-    public void visit(OptArrayDecl OptArrayDecl);
-    public void visit(OptMinus OptMinus);
-    public void visit(StatementList StatementList);
-    public void visit(Addop Addop);
-    public void visit(VarDeclRepeatList VarDeclRepeatList);
-    public void visit(Factor Factor);
-    public void visit(DesignatorRepeatList DesignatorRepeatList);
-    public void visit(OptExtends OptExtends);
-    public void visit(CondFactRepeatList CondFactRepeatList);
-    public void visit(ConstValue ConstValue);
-    public void visit(OptElseStatement OptElseStatement);
-    public void visit(VarDeclList VarDeclList);
-    public void visit(OptArrExpr OptArrExpr);
-    public void visit(ConstVarClassDeclList ConstVarClassDeclList);
-    public void visit(DesignatorStatement DesignatorStatement);
-    public void visit(DesignatorRepeat DesignatorRepeat);
     public void visit(OptMethodDeclList OptMethodDeclList);
+    public void visit(Factor Factor);
     public void visit(Statement Statement);
-    public void visit(OptActPars OptActPars);
-    public void visit(MethodDeclList MethodDeclList);
-    public void visit(OptExpr OptExpr);
-    public void visit(ActParsRepeatList ActParsRepeatList);
+    public void visit(OptArrayDecl OptArrayDecl);
+    public void visit(ConstVarClassDeclList ConstVarClassDeclList);
+    public void visit(Relop Relop);
+    public void visit(OptMinus OptMinus);
     public void visit(OptRelopExpr OptRelopExpr);
+    public void visit(MulopFactorList MulopFactorList);
     public void visit(AddopTermList AddopTermList);
+    public void visit(ConstDeclRepeatList ConstDeclRepeatList);
+    public void visit(OptArrExpr OptArrExpr);
+    public void visit(VarDeclRepeatList VarDeclRepeatList);
+    public void visit(OptExtends OptExtends);
+    public void visit(FormParsRepeatList FormParsRepeatList);
+    public void visit(OptActPars OptActPars);
+    public void visit(OptParenthesesActPars OptParenthesesActPars);
+    public void visit(CondFactRepeatList CondFactRepeatList);
+    public void visit(DesignatorRepeatList DesignatorRepeatList);
+    public void visit(Mulop Mulop);
+    public void visit(DesignatorStatement DesignatorStatement);
+    public void visit(Addop Addop);
+    public void visit(StatementList StatementList);
+    public void visit(OptElseStatement OptElseStatement);
+    public void visit(DesignatorRepeat DesignatorRepeat);
+    public void visit(ReturnType ReturnType);
+    public void visit(OptExpr OptExpr);
+    public void visit(MethodDeclList MethodDeclList);
+    public void visit(OptFormPars OptFormPars);
+    public void visit(ConstValue ConstValue);
+    public void visit(OptPrintNumConst OptPrintNumConst);
+    public void visit(VarDeclList VarDeclList);
+    public void visit(ActParsRepeatList ActParsRepeatList);
     public void visit(MulopModuo MulopModuo);
     public void visit(MulopDivision MulopDivision);
     public void visit(MulopMultiplication MulopMultiplication);
@@ -79,6 +79,8 @@ public interface Visitor {
     public void visit(OptRelopExprEpsilon OptRelopExprEpsilon);
     public void visit(OptRelopExprDeclared OptRelopExprDeclared);
     public void visit(CondFact CondFact);
+    public void visit(LogicalOr LogicalOr);
+    public void visit(LogicalAnd LogicalAnd);
     public void visit(CondFactRepeat CondFactRepeat);
     public void visit(CondFactRepeatListEpsilon CondFactRepeatListEpsilon);
     public void visit(CondFactRepeatListDeclared CondFactRepeatListDeclared);
@@ -107,6 +109,8 @@ public interface Visitor {
     public void visit(DoWhileBegin DoWhileBegin);
     public void visit(StatementListEpsilon StatementListEpsilon);
     public void visit(StatementListDeclared StatementListDeclared);
+    public void visit(ElseStart ElseStart);
+    public void visit(ThenStart ThenStart);
     public void visit(IfStart IfStart);
     public void visit(EnclosedStatement EnclosedStatement);
     public void visit(PrintStatement PrintStatement);

@@ -1,10 +1,10 @@
 
-package ba140645d.mjcompiler.ast;
+package ba140645d.mjcompiler;
 
 import java_cup.runtime.*;
 import java.io.*;
 import org.apache.log4j.*;
-
+import ba140645d.mjcompiler.ast.*;
 
 parser code {:
 
@@ -153,6 +153,8 @@ non terminal rs.etf.pp1.symboltable.concepts.Struct CondFact, OptRelopExpr, OptM
 
 non terminal IfStart;
 
+non terminal LogicalAnd, LogicalOr;
+non terminal ThenStart, ElseStart;
 /*******************************************
 ********    Gramatika jezika    ************
 ********************************************/
@@ -268,8 +270,8 @@ FormParsRepeat ::= (FormParsRepeat) OP_COMMA FormParDecl ;
 // deklaracija iskaza
 
 Statement ::= (StatementDesignator) DesignatorStatement OP_SEMICOLN
-            | (IfElseStatement)     IfStart OP_L_PARENTHESES Condition OP_R_PARENTHESES Statement ELSE Statement
-            | (IfStatement)         IfStart OP_L_PARENTHESES Condition OP_R_PARENTHESES Statement
+            | (IfElseStatement)     IfStart OP_L_PARENTHESES Condition ThenStart Statement ElseStart Statement
+            | (IfStatement)         IfStart OP_L_PARENTHESES Condition ThenStart Statement
             | (DoWhileStatement)    DoWhileBegin Statement DoWhileEnd OP_L_PARENTHESES Condition OP_R_PARENTHESES OP_SEMICOLN
             | (BreakStatement)      BREAK OP_SEMICOLN
             | (ContinueStatement)   CONTINUE OP_SEMICOLN
@@ -280,6 +282,10 @@ Statement ::= (StatementDesignator) DesignatorStatement OP_SEMICOLN
             ;
 
 IfStart ::= (IfStart) IF;
+
+ThenStart ::= (ThenStart) OP_R_PARENTHESES;
+
+ElseStart ::= (ElseStart) ELSE;
 
 StatementList ::= (StatementListDeclared) StatementList Statement
                 | (StatementListEpsilon)/*epsilon*/ ;
@@ -321,7 +327,7 @@ Condition ::= (Condition) CondTerm ConditionRepeatList ;
 ConditionRepeatList ::=     (ConditionRepeatListDeclared) ConditionRepeatList ConditionRepeat
                         |   (ConditionRepeatListEpsilon) /* epsilon */
                         ;
-ConditionRepeat ::= (ConditionRepeat) OP_LOGIC_OR CondTerm ;
+ConditionRepeat ::= (ConditionRepeat) LogicalOr CondTerm ;
 
 CondTerm ::= (CondTerm) CondFact CondFactRepeatList;
 
@@ -329,7 +335,11 @@ CondFactRepeatList ::=      (CondFactRepeatListDeclared) CondFactRepeatList Cond
                         |   (CondFactRepeatListEpsilon) /* epsilon */
                         ;
 
-CondFactRepeat ::= (CondFactRepeat) OP_LOGIC_AND CondFact ;
+CondFactRepeat ::= (CondFactRepeat) LogicalAnd CondFact ;
+
+LogicalAnd ::= (LogicalAnd) OP_LOGIC_AND ;
+
+LogicalOr ::= (LogicalOr) OP_LOGIC_OR;
 
 CondFact ::= (CondFact) Expr OptRelopExpr;
 
