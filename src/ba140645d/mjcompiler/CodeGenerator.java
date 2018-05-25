@@ -2,15 +2,12 @@ package ba140645d.mjcompiler;
 
 
 import ba140645d.mjcompiler.ast.*;
-import ba140645d.mjcompiler.utilities.SymbolTableVisitor;
 import rs.etf.pp1.mj.runtime.Code;
 import rs.etf.pp1.symboltable.Tab;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
-import rs.etf.pp1.symboltable.structure.SymbolDataStructure;
 
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 
 public class CodeGenerator extends VisitorAdaptor {
 
@@ -23,9 +20,24 @@ public class CodeGenerator extends VisitorAdaptor {
 
     private static final String MAIN_METH_NAME = "main";
 
+    private static final int ALLOC_BYTES = 0;
+
+    private static final int ALLOC_WORDS = 1;
 
     private Obj designatorObj = Tab.noObj;
 
+    private static final Obj minus1constObj = new Obj(Obj.Con, "", Tab.intType, -1, 0);
+
+    private static final Obj num1constObj = new Obj(Obj.Con, "", Tab.intType, 1, 0);
+
+
+    // stek koji pamti mesta za prepravljanje adresa skokova
+    // gde treba da skocimo ako je uslov true
+    private Stack<List<Integer>> truePatchStack = new Stack<>();
+
+    // stek koji pamti mesta za prepravljanje adresa skokova
+    // gde treba da skocimo ako je uslov false
+    private Stack<List<Integer>> falsePatchStack = new Stack<>();
 
     // svi simboli programa
     private HashMap<String, Obj> programSymbols = new HashMap<>();
@@ -79,6 +91,50 @@ public class CodeGenerator extends VisitorAdaptor {
         });
     }
 
+
+    private void storeDesignator(Obj designatorObj){
+        if (designatorObj.getKind() != Obj.Elem)
+            Code.store(designatorObj);
+        else if (designatorObj.getType() == Tab.intType)
+            Code.put(Code.astore);
+        else
+            Code.put(Code.bastore);
+    }
+
+    private void loadDesignator(Obj designatorObj){
+        if (designatorObj.getKind() != Obj.Elem)
+            Code.load(designatorObj);
+        else if (designatorObj.getType() == Tab.intType)
+            Code.put(Code.aload);
+        else
+            Code.put(Code.baload);
+    }
+
+
+    private int getRelopCode(Relop  relop){
+        if (relop instanceof  RelopEquals)
+            return Code.eq;
+        else if (relop instanceof  RelopNotEquals)
+            return Code.ne;
+        else if (relop instanceof  RelopGreater)
+            return Code.gt;
+        else if (relop instanceof RelopGreaterEqual)
+            return Code.ge;
+        else if (relop instanceof  RelopLesser)
+            return Code.lt;
+        else if (relop instanceof RelopLesserEqual)
+            return Code.le;
+
+
+        // nikad nece doci do ovoga
+        return Code.eq;
+    }
+
+    private void adrPatching(CondFact condFact){
+        // adresa na koju treba da skoce svi uslovi koji su ispunili true
+        int fixupAdr  = Code.pc;
+
+    }
     @Override
     public void visit(Program program){
         Tab.closeScope();
@@ -170,23 +226,58 @@ public class CodeGenerator extends VisitorAdaptor {
 
     @Override
     public void visit(Expr expr){
+        expr.struct = expr.getTerm().struct;
+    }
 
+    @Override
+    public void visit(OptMinusDeclared minusOp){
+        //Code.load(minus1constObj);
     }
 
 
     @Override
     public void visit(Term term){
+        if (term.getParent() instanceof Expr && ((Expr)term.getParent()).getOptMinus() instanceof OptMinusDeclared)
+            Code.put(Code.neg);
 
+        term.struct = term.getFactor().struct;
     }
 
     @Override
-    public void visit(AddopTermList addopTermList){
+    public void visit(AddopTermListDeclared addopTermList){
+        Addop addOp = addopTermList.getAddopTerm().getAddop();
 
+        if (addOp instanceof AddopAddition)
+                Code.put(Code.add);
+        else if (addOp instanceof  AddopSubtraction)
+            Code.put(Code.sub);
+
+        addopTermList.struct = addopTermList.getAddopTerm().struct;
     }
 
     @Override
     public void visit(AddopTerm addopTerm){
+        addopTerm.struct = addopTerm.getTerm().struct;
+    }
 
+
+    @Override
+    public void visit(MulopFactorListDeclared mulopFactorList){
+        Mulop mulop = mulopFactorList.getMulopFactor().getMulop();
+
+        if (mulop instanceof  MulopMultiplication)
+            Code.put(Code.mul);
+        else if (mulop instanceof  MulopDivision)
+            Code.put(Code.div);
+        else if (mulop instanceof  MulopModuo)
+            Code.put(Code.rem);
+
+        mulopFactorList.struct = mulopFactorList.getMulopFactor().struct;
+    }
+
+    @Override
+    public void visit(MulopFactor mulopFactor){
+        mulopFactor.struct = mulopFactor.getFactor().struct;
     }
 
     @Override
@@ -196,8 +287,12 @@ public class CodeGenerator extends VisitorAdaptor {
 
         if (designatorObj.getKind() == Obj.Meth) {
             Code.put(Code.call);
-            Code.put2(designatorObj.getAdr());
-        }
+            // treba nam relativan pomeraj u odnosu na instrukciju call
+            Code.put2(designatorObj.getAdr() - Code.pc + 1);
+        }else
+            loadDesignator(designatorObj);
+
+        factor.struct = factor.getDesignator().obj.getType();
     }
 
 
@@ -217,52 +312,89 @@ public class CodeGenerator extends VisitorAdaptor {
             constObj = new Obj(Obj.Con, "", SemanticAnalyzer.boolType, ((BoolConst) constValue).getBoolConst() ? 1 : 0, 0 );
 
         Code.load(constObj);
+
+        factorConst.struct = constObj.getType();
     }
 
 
     @Override
     public void visit(FactorNew factorNew){
+        // ispitujemo da li je alokacija niza
+        boolean isArrayAlloc = factorNew.getOptArrExpr() instanceof  OptArrExprDeclared;
 
+        Struct newType = Tab.find(factorNew.getType().getTypeName()).getType();
+        // za sad ne podrzavamo dinamicku alokaciju tipova, vec samo nizova, semanticka analiza je proverila
+        // vec uslov za to, stoga mi ne moramo
+
+        Code.put(Code.newarray);
+
+        if (newType == Tab.intType)
+            Code.put(ALLOC_WORDS);
+        else
+            Code.put(ALLOC_BYTES);
+
+        factorNew.struct = newType;
     }
 
 
     @Override
     public void visit(FactorExpr factorExpr){
-
+        factorExpr.struct = factorExpr.getExpr().struct;
     }
 
 
     /****************************************************************************
      ****************************************************************************
-     *************     VISIT METODE ZA ARITMETICKE OPERACIJE     ****************
+     ******************     VISIT METODE ZA LOGICKE IZRAZE    *******************
      ****************************************************************************
      ****************************************************************************/
 
 
     @Override
-    public void visit(AddopAddition additionOp){
+    public void visit(Condition condition){
 
     }
 
     @Override
-    public void visit(AddopSubtraction subtractionOp){
-
-    }
-
-
-    @Override
-    public void visit(MulopMultiplication multiplicaitonOp){
+    public void visit(ConditionRepeatList conditionRepeatList){
 
     }
 
     @Override
-    public void visit(MulopDivision divisionOp){
+    public void visit(CondTerm condTerm){
 
     }
 
     @Override
-    public void visit(MulopModuo moduoOp){
+    public void visit(CondFactRepeatList condFactRepeatList){
 
+    }
+
+    @Override
+    public void visit(CondFactRepeat condFactRepeat){
+
+    }
+
+    @Override
+    public void visit(CondFact condFact){
+
+        // podrazumevano je poredjenje eq, za slucaj kada je promenljiva samo boolean
+        int relopCode = Code.eq;
+
+        if (condFact.getOptRelopExpr() instanceof  OptRelopExprDeclared)
+            relopCode = getRelopCode(((OptRelopExprDeclared) condFact.getOptRelopExpr()).getRelop());
+
+
+        Code.putFalseJump(relopCode, 0);
+
+        falsePatchStack.peek().add(Code.pc - 2);
+    }
+
+
+
+    @Override
+    public void visit(OptRelopExprEpsilon exprEpsilon){
+        loadDesignator(num1constObj);
     }
 
 
@@ -277,6 +409,17 @@ public class CodeGenerator extends VisitorAdaptor {
         // u pitanju je B nivo, tu imamo samo promenljive i nizove
         // nema klasa, stoga ne moramo da imamo neki poseban kod za pristup poljima objekata
         designator.obj = Tab.find(designator.getDesignatorInitialName().getDesignatorName());
+
+
+        // ako nije niz vratimo se
+        if (designator.obj.getType().getKind() != Struct.Array)
+            return;
+
+
+        boolean isElemAccess = designator.getDesignatorRepeatList() instanceof  DesignatorRepeatListDeclared;
+
+        if (isElemAccess)
+            designator.obj = new Obj(Obj.Elem, "", designator.obj.getType().getElemType());
     }
 
     @Override
@@ -285,20 +428,15 @@ public class CodeGenerator extends VisitorAdaptor {
 
         designatorObj = Tab.find(designatorName);
 
+        // fleg koji oznacava da li pristupamo elementu niza
+        boolean isElemAccess = ((Designator)designatorInitialName.getParent()).getDesignatorRepeatList() instanceof  DesignatorRepeatListDeclared;
 
-        // da li je u pitanju designator statement, ako jeste onda ne treba da ucitavamo
-        // vrednost designatora
-        boolean isDesignatorStatementAssignPredecessor = designatorInitialName.getParent().getParent() instanceof DesignatorStatementAssign;
-        // ako nije klasa samo load-ujemo
-        if (designatorObj.getKind() != Obj.Meth && !isDesignatorStatementAssignPredecessor)
-            Code.load(designatorObj);
+
+        // treba da izgenerismo dodatnu instrukciju za ucitavanje adrese niza
+        // ukoliko pristupamo elementu niza
+        if (isElemAccess)
+            loadDesignator(designatorObj);
     }
-
-    @Override
-    public void visit(DesignatorRepeatExpr designatorArray){
-
-    }
-
 
     /****************************************************************************
      ****************************************************************************
@@ -309,7 +447,64 @@ public class CodeGenerator extends VisitorAdaptor {
 
     @Override
     public void visit(PrintStatement printStatement){
-       // Code.put(Code.call);
-        Code.put(Code.print);
+
+        // ako je izraz charType onda radimo ispis karaktera, inace ispisujemo broj
+        if (printStatement.getExpr().struct == Tab.charType)
+            Code.put(Code.bprint);
+        else
+            Code.put(Code.print);
+
+    }
+
+    @Override
+    public void visit(OptPrintNumConstDeclared width){
+        Code.load(new Obj(Obj.Con, "", Tab.intType, width.getNumConst(), 0));
+    }
+
+    @Override
+    public void visit(OptPrintNumConstEpsilon width){
+        Code.load(new Obj(Obj.Con, "", Tab.intType, 1, 0));
+    }
+
+
+    @Override
+    public void visit(DesignatorStatementAssign assignmentStmt){
+        Obj designatorObj = assignmentStmt.getDesignator().obj;
+
+
+        storeDesignator(designatorObj);
+
+    }
+
+    @Override
+    public void visit(DesignatorStatementIncrement incrementStmt){
+
+        // ukoliko se na steku nalaze array_addr, indeks
+        // treba da dupliramo poslednje dve vrednosti na steku
+        // jer cemo isti taj element koristiti za skladistenje rezultata
+        if (incrementStmt.getDesignator().obj.getKind() == Obj.Elem)
+            Code.put(Code.dup2);
+
+        // ucitamo prvo staru vrednost elementa
+        loadDesignator(incrementStmt.getDesignator().obj);
+
+        // ucitamo konstantu 1
+        Code.load(num1constObj);
+
+        // izvrsimo operaciju sabiranja
+        Code.put(Code.add);
+
+        // sacuvamo u element niza
+        storeDesignator(incrementStmt.getDesignator().obj);
+
+    }
+
+    @Override
+    public void visit(IfStart ifStart){
+        // stavimo na stek listu za obradu adresa skoka za trenutni if/else/while
+        truePatchStack.add(new LinkedList<>());
+
+        // isto kao gore, ali za skok ako je uslov netacan if/else/while
+        falsePatchStack.add(new LinkedList<>());
     }
 }
