@@ -9,7 +9,7 @@ import ba140645d.mjcompiler.ast.*;
 parser code {:
 
 
-	boolean errorDetected = false;
+	public boolean errorDetected = false;
 
 
 	Logger log = Logger.getLogger(getClass());
@@ -105,7 +105,7 @@ non terminal VarDecl, VarDeclList, VarDeclRepeatList, VarDeclRepeat, OptArrayDec
 non terminal ClassDecl, OptExtends, OptMethodDeclList;
 non terminal MethodDeclList, MethodDecl, ReturnType, OptFormPars;
 non terminal FormPars, FormParsRepeatList, FormParsRepeat;
-
+non terminal ConstValueWithErrorRecovery;
 
 non terminal Statement, OptElseStatement, DesignatorStatement;
 
@@ -152,13 +152,12 @@ non terminal rs.etf.pp1.symboltable.concepts.Struct Condition, ConditionRepeatLi
 non terminal rs.etf.pp1.symboltable.concepts.Struct CondFact, OptRelopExpr, OptMinus, CondFactRepeat;
 
 non terminal IfStart;
-
+non terminal DesignatorErr;
 non terminal LogicalAnd, LogicalOr;
 non terminal ThenStart, ElseStart;
 /*******************************************
 ********    Gramatika jezika    ************
 ********************************************/
-
 
 
 
@@ -184,7 +183,13 @@ ConstVarClassDeclList ::= (ConstVarClassDeclListConstDecl) ConstVarClassDeclList
 // deklaracija konstanti
 ConstDecl ::= (ConstDecl) CONST Type ConstDefinition  ConstDeclRepeatList  OP_SEMICOLN  ;
 
-ConstDefinition ::= (ConstDefinition) IDENTIFIKATOR:constName OP_EQUAL ConstValue:constValue ;
+ConstDefinition ::= (ConstDefinition) IDENTIFIKATOR:constName OP_EQUAL ConstValue;
+
+ConstValueWithErrorRecovery ::= (ConstValued) ConstValue
+                                |
+                                (ConstValueErrorRecovery) error {: System.err.println("Oporavak od greske pri definisanju konstante"); :}
+                                ;
+
 
 ConstDeclRepeatList ::= (ConstDeclRepeatListDeclared) ConstDeclRepeatList ConstDeclRepeat
                     |   (ConstDeclRepeatListEpsilon)/* epsilon */ ;
@@ -196,14 +201,24 @@ ConstDeclRepeat ::= (ConstDeclRepeat) OP_COMMA ConstDefinition;
 ConstValue ::=      (NumConst)  NUM_CONST:numConst
                 |   (CharConst) CHAR_CONST:charConst
                 |   (BoolConst) BOOL_CONST:boolConst
+                |   error {: System.err.println("Oporavak od greske pri dodeli"); :}
                 ;
 
 
 // deklaracija promenljivih
-VarDecl ::= (VarDecl) Type VarDeclDefinition VarDeclRepeatList OP_SEMICOLN  ;
+VarDecl ::= (VarDeclaration) Type VarDeclDefinition VarDeclRepeatList OP_SEMICOLN
+            |
+            (VarDeclErrorRecovery1) error OP_SEMICOLN {: System.err.println("Oporavak od greske kod definisanja promenljive"); :}
+            |
+            (VarDeclErrorRecovery2) error {: System.err.println("Oporavak od greske kod definisanja promenljive"); :}
+            ;
 
 
-VarDeclDefinition ::= (VarDeclDefinition) IDENTIFIKATOR:varName OptArrayDecl:isArray ;
+
+VarDeclDefinition ::= (VarDeclarationDefinition) IDENTIFIKATOR:varName OptArrayDecl:isArray
+                    |
+                    (VarDeclDefinitionErrorRecovery) error {: System.err.println("Oporavak od greske kod definisanje promenljive"); :}
+                    ;
 
 VarDeclList ::= (VarDeclListDeclared) VarDeclList VarDecl
             |   (VarDeclListEpsilon) /* epsilon */
@@ -259,7 +274,11 @@ OptFormPars ::= (OptFormParsDeclared) FormPars |  (OptFormParsEpsilon) /* epsilo
 
 // formalni parametri
 FormPars ::= (FormPars) FormParDecl FormParsRepeatList ;
-FormParDecl ::= (FormParDecl) Type:formParType IDENTIFIKATOR:formParName OptArrayDecl;
+
+FormParDecl ::=   (FormParDeclaration) Type:formParType IDENTIFIKATOR:formParName OptArrayDecl
+                | (FormParDeclErrorRecovery) error {: System.err.println("Oporavak od greske pri deklaraciji formalnih argumenata funkcije"); :}
+                ;
+
 
 FormParsRepeatList ::= (FormParsRepeatListDeclared) FormParsRepeatList FormParsRepeat
                     |  (FormParsRepeatListEpsilon)/* epsilon */
@@ -310,6 +329,9 @@ DesignatorStatement ::=     (DesignatorStatementAssign)     Designator OP_EQUAL 
                         |   (DesignatorStatementDecrement)  Designator OP_DECREMENT
                         ;
 
+
+DesignatorErr ::= (DesErr) OP_EQUAL error;
+
 OptActPars ::= (OptActParsDeclared) ActPars | (OptActParsEpsilon) /* epsilon */ ;
 
 ActPars ::= (ActPars) Expr ActParsRepeatList ;
@@ -322,7 +344,7 @@ ActParsRepeat ::= (ActParsRepeat) OP_COMMA Expr ;
 
 // gramatika uslova
 
-Condition ::= (Condition) CondTerm ConditionRepeatList ;
+Condition ::= (Condition) CondTerm ConditionRepeatList;
 
 ConditionRepeatList ::=     (ConditionRepeatListDeclared) ConditionRepeatList ConditionRepeat
                         |   (ConditionRepeatListEpsilon) /* epsilon */

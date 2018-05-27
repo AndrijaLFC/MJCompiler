@@ -19,8 +19,10 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     public static final int Bool = 5;
 
     public static final Struct boolType = new Struct(Bool);
+
     // da li je semanticka provera
     private boolean semanticCheck = true;
+
 
     // trenutni tip
     private Type currentType = null;
@@ -56,11 +58,18 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     private boolean returnStatementInMethod = false;
 
 
+
     /****************************************************************************
      ****************************************************************************
      *****************         KONSTANTNE VREDNOSTI         *********************
      ****************************************************************************
      ****************************************************************************/
+
+    private static final int MAX_NUM_LOCAL_VARS = 256;
+
+    private static final int MAX_NUM_GLOBAL_VARS = 65536;
+
+    private static final int MAX_NUM_CLASS_FIELDS = 65536;
 
     private static final String MAIN_METHOD_NAME = "main";
 
@@ -92,6 +101,11 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
     private static final String MAIN_METHOD_RETURN_TYPE_ERR_MSG = "Metoda " + MAIN_METHOD_NAME + " mora imati void povratni tip!";
 
+    private static final String MAX_NUM_LOCAL_VARS_ERR_MSG = "Prekoracen dozvoljen broj  lokalnih promenljivih! Dozvoljen broj je " + MAX_NUM_LOCAL_VARS;
+
+    private static final String MAX_NUM_GLOBAL_VARS_ERR_MSG = "Prekoracen dozvolen broj globalnih promenljivih! Dozvoljen broj je " + MAX_NUM_GLOBAL_VARS;
+
+
     /****************************************************************************
      ****************************************************************************
      ****************        KONSTRUKTOR  I JAVNE METODE         ****************
@@ -100,7 +114,6 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
     public SemanticAnalyzer(){
         Tab.init();
-
 
         Tab.currentScope().addToLocals(new Obj(Obj.Type, "bool", boolType));
     }
@@ -442,6 +455,19 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         // ulancamo u njega sve lokalne simbole
         Tab.chainLocalSymbols(programObj);
 
+        // broj globalnih promenljivih
+        int numGlobalVars = 0;
+
+        // prebrojimo globalne promenljive
+        for(Obj symbol : programObj.getLocalSymbols())
+            if (symbol.getKind() == Obj.Var)
+                numGlobalVars++;
+
+        // ako je broj globalnih promenljivih veci od dozvoljenog, prijavimo gresku
+        if (numGlobalVars > MAX_NUM_GLOBAL_VARS){
+            logError(MAX_NUM_GLOBAL_VARS_ERR_MSG, program);
+        }
+
         // zatvorimo opseg
         Tab.closeScope();
     }
@@ -547,7 +573,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     }
 
     @Override
-    public void visit(VarDeclDefinition varDeclDefinition){
+    public void visit(VarDeclarationDefinition varDeclDefinition){
         String varName = varDeclDefinition.getVarName();
 
         // simbol vec definisan
@@ -638,6 +664,13 @@ public class SemanticAnalyzer extends VisitorAdaptor{
             // ili samo obavestimo da nije naveo da svi putevi vracaju vrednost
             if (currentMethod.getType() != Tab.noType && !returnStatementInMethod)
                 logError(formatFuncMissingReturnStmtMessage(currentMethod), methodDecl);
+
+            // proverimo koliki je broj lokalnih promenljivih
+            // ako je vece od dozvoljenog prijavimo gresku
+            if (currentMethod.getLocalSymbols().size() > MAX_NUM_LOCAL_VARS){
+                logError(MAX_NUM_LOCAL_VARS_ERR_MSG, methodDecl);
+            }
+
         }
 
         // vratimo currentMethod na pocetnu vrednost
@@ -654,7 +687,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     }
 
     @Override
-    public void visit(FormParDecl formParDecl){
+    public void visit(FormParDeclaration formParDecl){
         // naziv parametra
         String formParName = formParDecl.getFormParName();
 

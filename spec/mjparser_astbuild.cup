@@ -122,7 +122,7 @@ nonterminal OptFormPars OptFormPars;
 non terminal FormPars FormPars;
 nonterminal FormParsRepeatList FormParsRepeatList;
 nonterminal FormParsRepeat FormParsRepeat;
-
+non terminal ConstValueWithErrorRecovery ConstValueWithErrorRecovery;
 
 non terminal Statement Statement;
 nonterminal OptElseStatement OptElseStatement;
@@ -173,7 +173,7 @@ non terminal rs.etf.pp1.symboltable.concepts.Struct Condition, ConditionRepeatLi
 non terminal rs.etf.pp1.symboltable.concepts.Struct CondFact, OptRelopExpr, OptMinus, CondFactRepeat;
 
 non terminal IfStart IfStart;
-
+non terminal DesignatorErr DesignatorErr;
 non terminal LogicalAnd LogicalAnd;
 nonterminal LogicalOr LogicalOr;
 non terminal ThenStart ThenStart;
@@ -181,7 +181,6 @@ nonterminal ElseStart ElseStart;
 /*******************************************
 ********    Gramatika jezika    ************
 ********************************************/
-
 
 
 
@@ -207,7 +206,13 @@ ConstVarClassDeclList ::= (ConstVarClassDeclListConstDecl) ConstVarClassDeclList
 // deklaracija konstanti
 ConstDecl ::= (ConstDecl) CONST Type:T1 ConstDefinition:C2  ConstDeclRepeatList:C3  OP_SEMICOLN {: RESULT=new ConstDecl(T1, C2, C3); RESULT.setLine(T1left); :}  ;
 
-ConstDefinition ::= (ConstDefinition) IDENTIFIKATOR:constName OP_EQUAL ConstValue:constValue {: RESULT=new ConstDefinition(constName, constValue); RESULT.setLine(constNameleft); :} ;
+ConstDefinition ::= (ConstDefinition) IDENTIFIKATOR:constName OP_EQUAL ConstValue:C1 {: RESULT=new ConstDefinition(constName, C1); RESULT.setLine(constNameleft); :};
+
+ConstValueWithErrorRecovery ::= (ConstValued) ConstValue:C1 {: RESULT=new ConstValued(C1); RESULT.setLine(C1left); :}
+                                |
+                                (ConstValueErrorRecovery) error {: System.err.println("Oporavak od greske pri definisanju konstante"); :} {: RESULT=new ConstValueErrorRecovery(); :}
+                                ;
+
 
 ConstDeclRepeatList ::= (ConstDeclRepeatListDeclared) ConstDeclRepeatList:C1 ConstDeclRepeat:C2 {: RESULT=new ConstDeclRepeatListDeclared(C1, C2); RESULT.setLine(C1left); :}
                     |   (ConstDeclRepeatListEpsilon) {: RESULT=new ConstDeclRepeatListEpsilon(); :}/* epsilon */ ;
@@ -219,14 +224,24 @@ ConstDeclRepeat ::= (ConstDeclRepeat) OP_COMMA ConstDefinition:C1 {: RESULT=new 
 ConstValue ::=      (NumConst)  NUM_CONST:numConst {: RESULT=new NumConst(numConst); RESULT.setLine(numConstleft); :}
                 |   (CharConst) CHAR_CONST:charConst {: RESULT=new CharConst(charConst); RESULT.setLine(charConstleft); :}
                 |   (BoolConst) BOOL_CONST:boolConst {: RESULT=new BoolConst(boolConst); RESULT.setLine(boolConstleft); :}
+                |   error {: System.err.println("Oporavak od greske pri definisanju konstante"); :} {: RESULT=new ConstValueDerived1(); :}
                 ;
 
 
 // deklaracija promenljivih
-VarDecl ::= (VarDecl) Type:T1 VarDeclDefinition:V2 VarDeclRepeatList:V3 OP_SEMICOLN {: RESULT=new VarDecl(T1, V2, V3); RESULT.setLine(T1left); :}  ;
+VarDecl ::= (VarDeclaration) Type:T1 VarDeclDefinition:V2 VarDeclRepeatList:V3 OP_SEMICOLN {: RESULT=new VarDeclaration(T1, V2, V3); RESULT.setLine(T1left); :}
+            |
+            (VarDeclErrorRecovery1) error OP_SEMICOLN {: System.err.println("Oporavak od greske kod definisanja promenljive"); :} {: RESULT=new VarDeclErrorRecovery1(); :}
+            |
+            (VarDeclErrorRecovery2) error {: System.err.println("Oporavak od greske kod definisanja promenljive"); :} {: RESULT=new VarDeclErrorRecovery2(); :}
+            ;
 
 
-VarDeclDefinition ::= (VarDeclDefinition) IDENTIFIKATOR:varName OptArrayDecl:isArray {: RESULT=new VarDeclDefinition(varName, isArray); RESULT.setLine(varNameleft); :} ;
+
+VarDeclDefinition ::= (VarDeclarationDefinition) IDENTIFIKATOR:varName OptArrayDecl:isArray {: RESULT=new VarDeclarationDefinition(varName, isArray); RESULT.setLine(varNameleft); :}
+                    |
+                    (VarDeclDefinitionErrorRecovery) error {: System.err.println("Oporavak od greske kod definisanje promenljive"); :} {: RESULT=new VarDeclDefinitionErrorRecovery(); :}
+                    ;
 
 VarDeclList ::= (VarDeclListDeclared) VarDeclList:V1 VarDecl:V2 {: RESULT=new VarDeclListDeclared(V1, V2); RESULT.setLine(V1left); :}
             |   (VarDeclListEpsilon) {: RESULT=new VarDeclListEpsilon(); :} /* epsilon */
@@ -282,7 +297,11 @@ OptFormPars ::= (OptFormParsDeclared) FormPars:F1 {: RESULT=new OptFormParsDecla
 
 // formalni parametri
 FormPars ::= (FormPars) FormParDecl:F1 FormParsRepeatList:F2 {: RESULT=new FormPars(F1, F2); RESULT.setLine(F1left); :} ;
-FormParDecl ::= (FormParDecl) Type:formParType IDENTIFIKATOR:formParName OptArrayDecl:O1 {: RESULT=new FormParDecl(formParType, formParName, O1); RESULT.setLine(formParTypeleft); :};
+
+FormParDecl ::=   (FormParDeclaration) Type:formParType IDENTIFIKATOR:formParName OptArrayDecl:O1 {: RESULT=new FormParDeclaration(formParType, formParName, O1); RESULT.setLine(formParTypeleft); :}
+                | (FormParDeclErrorRecovery) error {: System.err.println("Oporavak od greske pri deklaraciji formalnih argumenata funkcije"); :} {: RESULT=new FormParDeclErrorRecovery(); :}
+                ;
+
 
 FormParsRepeatList ::= (FormParsRepeatListDeclared) FormParsRepeatList:F1 FormParsRepeat:F2 {: RESULT=new FormParsRepeatListDeclared(F1, F2); RESULT.setLine(F1left); :}
                     |  (FormParsRepeatListEpsilon) {: RESULT=new FormParsRepeatListEpsilon(); :}/* epsilon */
@@ -305,7 +324,9 @@ Statement ::= (StatementDesignator) DesignatorStatement:D1 OP_SEMICOLN {: RESULT
             ;
 
 IfStart ::= (IfStart) IF {: RESULT=new IfStart(); :};
+
 ThenStart ::= (ThenStart) OP_R_PARENTHESES {: RESULT=new ThenStart(); :};
+
 ElseStart ::= (ElseStart) ELSE {: RESULT=new ElseStart(); :};
 
 StatementList ::= (StatementListDeclared) StatementList:S1 Statement:S2 {: RESULT=new StatementListDeclared(S1, S2); RESULT.setLine(S1left); :}
@@ -331,6 +352,9 @@ DesignatorStatement ::=     (DesignatorStatementAssign)     Designator:D1 OP_EQU
                         |   (DesignatorStatementDecrement)  Designator:D1 OP_DECREMENT {: RESULT=new DesignatorStatementDecrement(D1); RESULT.setLine(D1left); :}
                         ;
 
+
+DesignatorErr ::= (DesErr) OP_EQUAL error {: RESULT=new DesErr(); :};
+
 OptActPars ::= (OptActParsDeclared) ActPars:A1 {: RESULT=new OptActParsDeclared(A1); RESULT.setLine(A1left); :} | (OptActParsEpsilon) {: RESULT=new OptActParsEpsilon(); :} /* epsilon */ ;
 
 ActPars ::= (ActPars) Expr:E1 ActParsRepeatList:A2 {: RESULT=new ActPars(E1, A2); RESULT.setLine(E1left); :} ;
@@ -343,7 +367,7 @@ ActParsRepeat ::= (ActParsRepeat) OP_COMMA Expr:E1 {: RESULT=new ActParsRepeat(E
 
 // gramatika uslova
 
-Condition ::= (Condition) CondTerm:C1 ConditionRepeatList:C2 {: RESULT=new Condition(C1, C2); RESULT.setLine(C1left); :} ;
+Condition ::= (Condition) CondTerm:C1 ConditionRepeatList:C2 {: RESULT=new Condition(C1, C2); RESULT.setLine(C1left); :};
 
 ConditionRepeatList ::=     (ConditionRepeatListDeclared) ConditionRepeatList:C1 ConditionRepeat:C2 {: RESULT=new ConditionRepeatListDeclared(C1, C2); RESULT.setLine(C1left); :}
                         |   (ConditionRepeatListEpsilon) {: RESULT=new ConditionRepeatListEpsilon(); :} /* epsilon */
@@ -359,7 +383,9 @@ CondFactRepeatList ::=      (CondFactRepeatListDeclared) CondFactRepeatList:C1 C
 CondFactRepeat ::= (CondFactRepeat) LogicalAnd:L1 CondFact:C2 {: RESULT=new CondFactRepeat(L1, C2); RESULT.setLine(L1left); :} ;
 
 LogicalAnd ::= (LogicalAnd) OP_LOGIC_AND {: RESULT=new LogicalAnd(); :} ;
+
 LogicalOr ::= (LogicalOr) OP_LOGIC_OR {: RESULT=new LogicalOr(); :};
+
 CondFact ::= (CondFact) Expr:E1 OptRelopExpr:O2 {: RESULT=new CondFact(E1, O2); RESULT.setLine(E1left); :};
 
 OptRelopExpr ::=  (OptRelopExprDeclared) Relop:R1 Expr:E2 {: RESULT=new OptRelopExprDeclared(R1, E2); RESULT.setLine(R1left); :}

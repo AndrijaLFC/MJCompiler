@@ -1,0 +1,50 @@
+// generated with ast extension for cup
+// version 0.8
+// 19/4/2018 17:58:2
+
+
+package ba140645d.mjcompiler.ast;
+
+public class BoolConst extends ConstValue {
+
+    private java.lang.Boolean boolConst;
+
+    public BoolConst (java.lang.Boolean boolConst) {
+        this.boolConst=boolConst;
+    }
+
+    public java.lang.Boolean getBoolConst() {
+        return boolConst;
+    }
+
+    public void setBoolConst(java.lang.Boolean boolConst) {
+        this.boolConst=boolConst;
+    }
+
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
+
+    public void childrenAccept(Visitor visitor) {
+    }
+
+    public void traverseTopDown(Visitor visitor) {
+        accept(visitor);
+    }
+
+    public void traverseBottomUp(Visitor visitor) {
+        accept(visitor);
+    }
+
+    public String toString(String tab) {
+        StringBuffer buffer=new StringBuffer();
+        buffer.append(tab);
+        buffer.append("BoolConst(\n");
+
+        buffer.append("\n");
+
+        buffer.append(tab);
+        buffer.append(") [BoolConst]");
+        return buffer.toString();
+    }
+}

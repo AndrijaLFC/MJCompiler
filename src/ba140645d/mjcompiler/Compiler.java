@@ -47,7 +47,7 @@ public class Compiler{
         Reader bufferReader = null;
 
         if (args.length != 2){
-            System.err.println(COMPILER_FORMAT);
+            System.err.println("Not enough parameters! Expecting : " + COMPILER_FORMAT);
             return;
         }
 
@@ -62,11 +62,12 @@ public class Compiler{
 
             Parser parser = new Parser(lexer);
 
+            log.info("====================== Performing Syntax Check ======================");
             Symbol symbol = parser.parse();
 
             SyntaxNode root = (SyntaxNode)symbol.value;
 
-            if (!(root instanceof  Program)) {
+            if (!(root instanceof  Program) || parser.errorDetected) {
                 log.error("Sintaksna greska! Prevodjenje se ne moze nastaviti");
 
                 return;
@@ -78,6 +79,8 @@ public class Compiler{
 
             SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
 
+            log.info("====================== Performing Semantic Check ======================");
+
             root.traverseBottomUp(semanticAnalyzer);
 
             if (semanticAnalyzer.isSemanticallyCorrect() == false){
@@ -86,19 +89,24 @@ public class Compiler{
                 return;
             }
 
+            log.info("====================== Dumping Symol Table Content ======================");
             tsdump();
 
             File destObjFile = new File(args[1]);
 
-            if (destObjFile.exists())
+            if (destObjFile.exists()) {
+                log.info("Destination file already exists. Its content is being deleted.");
                 destObjFile.delete();
+            }
 
             CodeGenerator codeGenerator = new CodeGenerator();
 
+            log.info("====================== Performing Code Generation ======================");
             program.traverseBottomUp(codeGenerator);
 
             Code.write(new FileOutputStream(destObjFile));
 
+            log.info("Compilation completed successfuly!");
         } catch (FileNotFoundException e) {
 
         } finally{

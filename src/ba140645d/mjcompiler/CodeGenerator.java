@@ -493,6 +493,16 @@ public class CodeGenerator extends VisitorAdaptor {
             designator.obj = new Obj(Obj.Elem, "", designator.obj.getType().getElemType());
     }
 
+
+    @Override
+    public void visit(DesignatorStatementActualPars funcCall){
+        // navedemo instrukciju skoka
+        Code.put(Code.call);
+
+        // upisemo pomeraj
+        Code.put2(funcCall.getDesignator().obj.getAdr() - Code.pc + 1);
+    }
+
     @Override
     public void visit(DesignatorInitialName designatorInitialName){
         String designatorName = designatorInitialName.getDesignatorName();
