@@ -1,0 +1,93 @@
+program P
+const int size = 10;
+const bool isTrue = true;
+const char robi = 25;
+char lent;
+const bool intBool = true;
+int arr[];
+bool boolArr[];
+{
+
+
+        int findMax(int arr[])
+        int arrLen, maxNum;
+        {
+            if (arr == null)
+                return -1;
+
+            arrLen = len(arr);
+            if (arrLen == 0)
+                return 0;
+
+            do{
+                arrLen--;
+                arr--;
+                if (arrLen < 0)
+                    break;
+
+                if (maxNum < arr[arrLen])
+                    maxNum = arr[arrLen];
+
+            }while(arrLen >= 0);
+
+
+           lenoz = 25;
+
+        }
+
+        int main(int a, int b)
+        int arr[], i, maxNum;
+        char helloWorld[];
+        {
+            arr = new int[10];
+            helloWorld = new char[11];
+
+            helloWorld[0] = "H";
+            helloWorld[1] = "e";
+            helloWorld[2] = "l";
+            helloWorld[3] = "l";
+            helloWorld[4] = "o";
+            helloWorld[5] = " ";
+            helloWorld[6] = "w";
+            helloWorld[7] = "o";
+            helloWorld[8] = "r";
+            helloWorld[9] = "l";
+            helloWorld[10] = "d";
+
+
+            i = 0;
+
+            findMax();
+            i = "a" + 25;
+
+            do{
+                print(helloWorld[i]);
+                i++;
+            }while(i < 11);
+
+            print(eol);
+
+            i = 0;
+            do
+            {
+                if (i == 10)
+                    break;
+
+                read(arr[i]);
+                i++;
+            }while(i < 10);
+
+
+            maxNum = findMax(arr);
+
+            print(maxNum);
+
+            i = arr[0] * arr[1] + arr[2];
+
+            return;
+
+
+            i = 4 + arr[0];
+
+        }
+}

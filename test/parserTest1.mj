@@ -1,0 +1,126 @@
+program P
+const int size = 10;
+const bool isTrue = true;
+const char robi = "R";
+char lent;
+const bool intBool = true;
+int arr[];
+bool boolArr[];
+{
+
+
+        int findMax(int arr[])
+        int arrLen, maxNum;
+        {
+            if (arr == null)
+                return -1;
+
+            arrLen = len(arr);
+            if (arrLen == 0)
+                return 0;
+
+            do{
+                arrLen--;
+                if (arrLen < 0)
+                    break;
+
+                if (maxNum < arr[arrLen])
+                    maxNum = arr[arrLen];
+
+            }while(arrLen >= 0);
+
+            return maxNum;
+
+        }
+
+        void sortArray(int arr[])
+        int arrLen;
+        int i; int j;
+        int tmp;
+        {
+            if (arr == null)
+                return;
+
+            arrLen = len(arr);
+
+            if (arrLen == 0)
+                return ;
+
+
+            do{
+
+                j = i + 1;
+                do{
+                    if (j == arrLen)
+                        break;
+
+                    if (arr[i] > arr[j]){
+                        tmp = arr[i];
+                        arr[i] = arr[j];
+                        arr[j] = tmp;
+
+                    }
+                    j++;
+                }while(j < arrLen);
+                i++;
+            }while(i < arrLen - 1);
+        }
+
+        void main()
+        int arr[]; int i; int maxNum;
+        char helloWorld[];
+        {
+            arr = new int[10];
+            helloWorld = new char[11];
+
+            helloWorld[0] = "H";
+            helloWorld[1] = "e";
+            helloWorld[2] = "l";
+            helloWorld[3] = "l";
+            helloWorld[4] = "o";
+            helloWorld[5] = " ";
+            helloWorld[6] = "w";
+            helloWorld[7] = "o";
+            helloWorld[8] = "r";
+            helloWorld[9] = "l";
+            helloWorld[10] = "d";
+
+
+            i = 0;
+
+            do{
+                print(helloWorld[i]);
+                i++;
+            }while(i < 11);
+
+            print(eol);
+
+            i = 0;
+            do
+            {
+                if (i == 10)
+                    break;
+
+                read(arr[i]);
+                i++;
+            }while(i < 10);
+
+
+            maxNum = findMax(arr);
+
+            print(maxNum);
+
+            print(eol);
+
+            if (true)
+            sortArray(arr);
+
+            i = 0;
+
+            do{
+                print(arr[i]);
+                print(" ");
+                i++;
+            }while(i < 10);
+        }
+}

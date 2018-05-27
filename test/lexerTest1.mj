@@ -1,0 +1,26 @@
+program P{
+    const int k;
+    char i;
+    bool z;
+
+    const int test = 5;
+    do{
+        if (false)
+            break;
+            continue;
+    }while(true);
+
+    len(i);
+    chr(i):
+    ord(k);
+
+    print(i);
+    read(k);
+
+    void
+    class K extends B{
+        char c = "a";
+    };
+
+
+}
