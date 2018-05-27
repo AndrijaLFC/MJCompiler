@@ -1,29 +1,23 @@
-program P{
-    const int k;
-    char i;
-    bool z;
+program Program
 
-    const int test = 5;
-    do{
-        if (false)
-            break;
-            continue;
-    }while(true);
+const int n";
 
-    len(i);
-    chr(i):
-    ord(k);
+int 9a_;
 
-    print(i);
-    read(k);
+int _ident;
 
-    void
-    class K extends B{
-        char c = "a";
-    };
+int ident9_a;
 
-    ??
-    int _;
-    ~!':
+char c;
+
+{
+	void main(){
+		ident9_a = 6 ^ 7;
+		ident9_a = 9 & 6;
+		ident9_a = 9 | 5;
+		c = "a";
+		c = 'a';
+		c = true ? 'a' : 'b';
+	}
 
 }

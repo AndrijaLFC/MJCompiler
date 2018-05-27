@@ -680,6 +680,17 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         Tab.closeScope();
     }
 
+    @Override
+    public void visit(OptFormParsDeclared formPars){
+        // ukoliko smo napravili simbol metode, nakon sto obradimo sve formalne argumente
+        // postavljamo broj formalnih parametara
+        // ovo radimo nakon formalnig argumenata da bi podrzali rekurziju
+        if (currentMethod != Tab.noObj) {
+            currentMethod.setLevel(currentMethodFormParNum);
+            currentMethod.setLocals(Tab.currentScope.getLocals());
+        }
+    }
+
 
     @Override
     public void visit(ReturnTypeVoid voidReturnType){

@@ -19,7 +19,7 @@ public class MJLexerTest{
         Reader bufferReader = null;
 
         try{
-            File source = new File("test/testProgram.mj");
+            File source = new File(args[0]);
             log.info("Compiling source file :" + source.getAbsolutePath());
 
             bufferReader = new BufferedReader(new FileReader(source));

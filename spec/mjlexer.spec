@@ -93,4 +93,4 @@ import java_cup.runtime.Symbol;
 <COMMENT_STATE> .       { yybegin(COMMENT_STATE);   }
 
 
-. { System.err.println("Leksicka greska (" + yytext() + ") u liniji " + (yyline + 1) + ")"); }
+. { System.err.println("Leksicka greska (" + yytext() + ") na liniji " + (yyline + 1)); }

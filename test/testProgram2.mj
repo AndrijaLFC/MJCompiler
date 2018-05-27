@@ -16,6 +16,7 @@ bool boolArr[];
                 return -1;
 
             arrLen = len(arr);
+
             if (arrLen == 0)
                 return 0;
 
@@ -31,6 +32,15 @@ bool boolArr[];
 
             return maxNum;
 
+        }
+
+
+        int fibonacci(int n)
+        {
+            if (n == 0 || n == 1)
+                return 1;
+
+            return fibonacci(n - 1) + fibonacci(n - 2);
         }
 
         void main()
@@ -53,6 +63,10 @@ bool boolArr[];
             helloWorld[10] = "d";
 
 
+            i = fibonacci(6);
+
+            print(i);
+            print(eol);
             i = 0;
 
             do{
@@ -78,41 +92,12 @@ bool boolArr[];
             print(maxNum);
 
             i = arr[0] * arr[1] + arr[2];
-            // push(arr)
-            // push 0
-            // push(arr)
-            // push 1
-            // mulop
-            // push (arr)
-            // push 2
 
-
-            ///i = arr[0] + f(arr[1] + arr[2], arr[3]);
-            //push arr
-            //push 0
-            // aload
-            // push arr
-            // push 1
-            // aload
-            // push arr
-            // push 2
-            // aload
-            // add
-            // push arr
-            // push 3
-            // aload
-            // call f
             return;
 
 
             i = 4 + arr[0];
 
-
-            // const_n
-            // push arr
-            // const_n
-            // aload
-            // addop
 
         }
 }

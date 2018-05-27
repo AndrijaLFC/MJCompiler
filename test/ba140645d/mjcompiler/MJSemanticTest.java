@@ -2,6 +2,8 @@ package  ba140645d.mjcompiler;
 
 
 import ba140645d.log4j.Log4JUtil;
+import ba140645d.mjcompiler.ast.Program;
+import ba140645d.mjcompiler.ast.SyntaxNode;
 import java_cup.runtime.Symbol;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
@@ -19,7 +21,7 @@ class MJSemanticTest {
         Reader bufferReader = null;
 
         try{
-            File source = new File("test/testProgram.mj");
+            File source = new File(args[0]);
             log.info("Compiling source file :" + source.getAbsolutePath());
 
             bufferReader = new BufferedReader(new FileReader(source));
@@ -29,6 +31,30 @@ class MJSemanticTest {
             Parser parser = new Parser(lexer);
 
             Symbol symbol = parser.parse();
+
+            SyntaxNode root = (SyntaxNode)symbol.value;
+
+            if (!(root instanceof Program) || parser.errorDetected) {
+                log.error("Sintaksna greska! Prevodjenje se ne moze nastaviti");
+
+                return;
+            }
+
+            Program program = (Program)root;
+
+            log.info(program.toString(""));
+
+            SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
+
+            log.info("====================== Performing Semantic Check ======================");
+
+            root.traverseBottomUp(semanticAnalyzer);
+
+            if (!semanticAnalyzer.isSemanticallyCorrect()){
+                log.error("Semanticka greska! Prevodjenje se ne moze nastaviti");
+
+                return;
+            }
 
 
 

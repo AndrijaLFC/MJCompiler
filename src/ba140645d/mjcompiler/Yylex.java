@@ -804,7 +804,7 @@ class Yylex implements java_cup.runtime.Scanner {
           }
         case 82: break;
         case 1: 
-          { System.err.println("Leksicka greska (" + yytext() + ") u liniji " + (yyline + 1) + ")");
+          { System.err.println("Leksicka greska (" + yytext() + ") na liniji " + (yyline + 1));
           }
         case 83: break;
         case 37: 
