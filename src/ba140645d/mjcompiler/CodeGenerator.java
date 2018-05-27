@@ -568,6 +568,26 @@ public class CodeGenerator extends VisitorAdaptor {
         // sacuvamo u element niza
         storeDesignator(incrementStmt.getDesignator().obj);
     }
+    
+    public void visit(DesignatorStatementDecrement decrementStmt){
+        // ukoliko se na steku nalaze array_addr, indeks
+        // treba da dupliramo poslednje dve vrednosti na steku
+        // jer cemo isti taj element koristiti za skladistenje rezultata
+        if (decrementStmt.getDesignator().obj.getKind() == Obj.Elem)
+            Code.put(Code.dup2);
+
+        // ucitamo prvo staru vrednost elementa
+        loadDesignator(decrementStmt.getDesignator().obj);
+
+        // ucitamo konstantu 1
+        Code.load(num1constObj);
+
+        // izvrsimo operaciju oduzimanja
+        Code.put(Code.sub);
+
+        // sacuvamo u element niza
+        storeDesignator(decrementStmt.getDesignator().obj);
+    }
 
     @Override
     public void visit(IfStart ifStart){

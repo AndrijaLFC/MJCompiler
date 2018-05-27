@@ -19,12 +19,51 @@ bool boolArr[];
         return arr[0];
     }
 
+            int findMax(int arr[])
+            int arrLen, maxNum;
+            {
+                if (arr == null)
+                    return -1;
+
+                arrLen = len(arr);
+                //print(arrLen);
+
+                if (arrLen == 0)
+                    return 0;
+
+                do{
+                    arrLen--;
+                    if (arrLen < 0)
+                        break;
+
+                    if (maxNum < arr[arrLen])
+                        maxNum = arr[arrLen];
+
+                }while(arrLen >= 0);
+
+
+                return maxNum;
+            }
+
     void main()
     int i, arr[];
     char helloWorld[];
     char readEol;
     {
-            arr = new int[15];
+            arr = new int[5];
+
+            i = 2;
+            arr[0] = 1;
+            arr[1] = 1;
+            do{
+                arr[i] = arr[i - 1] + arr[i - 2];
+                i++;
+            }while(i < 5);
+
+            i = findMax(arr);
+
+            print(i);
+            print(eol);
 
             helloWorld = new char[11];
 
