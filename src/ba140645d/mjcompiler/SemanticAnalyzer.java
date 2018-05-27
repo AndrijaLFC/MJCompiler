@@ -41,7 +41,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     private Obj designatorObj = Tab.noObj;
 
     // fleg da li smo u petlji
-    private boolean insideLoop = false;
+    private int insideLoop = 0;
 
     // fleg koji oznacava da li je program semanticki ispravan
     private boolean semanticallyCorrect = true;
@@ -120,31 +120,25 @@ public class SemanticAnalyzer extends VisitorAdaptor{
      ****************************************************************************
      ****************************************************************************/
 
+
+    /**
+     * Proverava da li u trenutnom opsegu postoji simbol sa zadatim imenom
+     * @param symName naziv simbola
+     * @return vraca true ukoliko je simbol definisan u trenutnom opsegu, false u suprotnom
+     */
     private boolean isDefinedInCurrentScope(String symName){
         return Tab.currentScope().findSymbol(symName) != null;
     }
 
+
+    /**
+     * Proverava da li je simbol sa zadatim imenom definisan(proverava od najugnjezdenijeg do najsireg opsega)
+     * @param symName naziv simbola
+     * @return vraca true ukoliko je simbol definisan, false u suprotnom
+     */
     private boolean isDefined(String symName){
         return Tab.find(symName) != Tab.noObj;
     }
-
-
-    private boolean areEquivalentTypes(Obj typeObj1, Obj typeObj2){
-        if (typeObj1.getKind() != Obj.Type || typeObj2.getKind() != Obj.Type) {
-            System.err.println("FATAL ERROR!!! in function areEquivalentTypes! ");
-            System.err.println("obj1 type is : " + symbolTypeToString(typeObj1.getKind()));
-            System.err.println("obj2 type is : " + symbolTypeToString(typeObj2.getKind()));
-
-            return false;
-        }
-
-        boolean areArrays = typeObj1.getType().getKind() == Struct.Array
-                && typeObj2.getType().getKind() == Struct.Array;
-
-        return typeObj1.getName().equals(typeObj2.getName()) || typeObj1.getType().equals(typeObj2.getType());
-    }
-
-
 
 
     private void logInfo(String message, SyntaxNode node){
@@ -334,6 +328,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
      * @return vraca tip koji je rezultat izraza
      */
     private Struct checkIfValidExpr(@Nullable  Struct leftOperandType, @Nullable Struct rightOperandType, SyntaxNode visitedNode){
+        // rezultat dva izraza mora da je int
         Struct returnType = Tab.intType;
 
         if (leftOperandType == null && rightOperandType == null){
@@ -350,7 +345,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
 
         if (leftOperandType.equals(Tab.intType) && rightOperandType.equals(Tab.intType))
-            return Tab.intType;
+            return returnType;
         else if (!leftOperandType.equals(Tab.noType) || !rightOperandType.equals(Tab.noType))
             logError("Aritmeticki izrazi zahtevaju da operandi budu tipa Int", visitedNode);
 
@@ -382,7 +377,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
 
     /**
-     *
+     * Proverava da li se tipovi formalnih poklapaju sa tipovima stvarnih argumenata
      * @param actualParsList lista stvarnih argumenata
      * @param funcObj simbol funkcije
      * @param syntaxNode referentni cvor stabla u slucaju da treba da se ispise greska
@@ -429,17 +424,18 @@ public class SemanticAnalyzer extends VisitorAdaptor{
      ****************************************************************************
      *******************       VISIT METODE ZA PROGRAM       ********************
      **********************    KONSTANTE I PROMENLJIVE     **********************
+     ****************************************************************************
      ****************************************************************************/
 
     @Override
     public void visit(Program program) {
 
         // pronalazimo simbol programa u tabeli simbola
-
         Obj programObj = Tab.find(program.getProgramName().getProgramName());
 
         logInfo(formatSymbolInfo(programObj), program);
 
+        // ako main metoda nije definisana, ispisemo gresku
         if (!mainMethodDefined)
             logError(MAIN_METHOD_UNDEFINED_ERR_MSG, program);
 
@@ -521,13 +517,16 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     @Override
     public void visit(Type type){
 
-
+        // naziv tipa
         String typeName = type.getTypeName();
 
+        // prvo postavljamo da nismo naisli na simbol tipa
         currentTypeObj = Tab.noObj;
 
         currentType = type;
 
+        // ako nismo pronasli simbol sa zadatim nazivom
+        // vratimo se
         if (!isDefined(typeName)){
             logError(formatSymbolNotDefinedMessage(typeName), type);
 
@@ -538,6 +537,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         // simbol je vec definisan,sada treba videti da li je u pitanju tip
         Obj typeObj = Tab.find(typeName);
 
+        // ako je simbol vrste tip, onda zapamtimo simbol
         if (typeObj.getKind() == Obj.Type)
             currentTypeObj = typeObj;
         else
@@ -567,6 +567,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         Struct arrayStruct = new Struct(Struct.Array, currentTypeObj.getType());
 
         Obj varObj = null;
+
         // ako je deklaracija niza, onda postavljamo za tip array strukturu
         // inace postavljamo sam tip koji je naveden
         if (isArrayDecl)
@@ -658,7 +659,8 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         String formParName = formParDecl.getFormParName();
 
         // ako je vec definisan samo napisati gresku i vratiti se
-        if (isDefinedInCurrentScope(formParName)){
+        // ili ima naziv isti kao i metoda
+        if (isDefinedInCurrentScope(formParName) || formParName.equals(currentMethod.getName())){
             logError(formatAlreadyDefinedMessage(formParName), formParDecl);
             return;
         }
@@ -697,23 +699,22 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
     @Override
     public void visit(DesignatorInitialName designatorInitialName){
-        logInfo(designatorInitialName.getDesignatorName() +" initial", designatorInitialName);
+        //logInfo(designatorInitialName.getDesignatorName() +" initial", designatorInitialName);
 
+        // nadjemo objekat sa datim nazivom
         designatorObj = Tab.find(designatorInitialName.getDesignatorName());
 
+        // ako ne postoji prijavimo gresku
         if (designatorObj == Tab.noObj)
             logError(formatSymbolNotDefinedMessage(designatorInitialName.getDesignatorName()), designatorInitialName);
     }
 
     @Override
     public void visit(DesignatorRepeatListDeclared designatorRepeatListDeclared){
-
-
         designatorRepeatListDeclared.obj = Tab.noObj;
 
 
         Obj designatorObj = designatorRepeatListDeclared.getDesignatorRepeatList().obj;
-        //Obj designatorRepeatObj = designatorRepeatListDeclared.getDesignatorRepeat().obj;
 
         DesignatorRepeat designatorRepeat = designatorRepeatListDeclared.getDesignatorRepeat();
 
@@ -754,12 +755,14 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         }else{ // slucaj kada je DesignatorRepeat zapravo DesignatorRepeatExpr(pristup elementu niza)
             Expr arraySize = ((DesignatorRepeatExpr)designatorRepeatListDeclared.getDesignatorRepeat()).getExpr();
 
+            // ako indeks niza nije int, prijavimo gresku
             if (!arraySize.struct.equals(Tab.intType)){
                 logError(ARR_INDEX_TYPE_ERR, designatorRepeatListDeclared);
 
                 return;
             }
 
+            // ako je pristup elementu niza, a promenljiva nije tipa niz, prijavimo gresku
             if (designatorObj.getType().getKind() != Struct.Array){
                 logError(NOT_ARR_TYPE_ERR_MSG, designatorRepeatListDeclared.getDesignatorRepeatList());
             }
@@ -780,11 +783,6 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     @Override
     public void visit(DesignatorRepeatListEpsilon designatorRepeatListEpsilon){
         designatorRepeatListEpsilon.obj = designatorObj;
-    }
-
-    @Override
-    public void visit(DesignatorRepeatField designatorRepeatField){
-        //logInfo(designatorRepeatField.getFieldName(), designatorRepeatField);
     }
 
     /***********************************************************************************
@@ -981,7 +979,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         // dohvatimo listu stvarnih parametara
         StructLinkedList actualParsList = factorFuncCallOrVar.getOptParenthesesActPars().structlinkedlist;
 
-
+        // proverimo da li se tipovi stvarnih i formalnih argumenata poklapaju
         checkFuncFormalAndActualPars(actualParsList, funcObj, factorFuncCallOrVar);
     }
 
@@ -1010,6 +1008,8 @@ public class SemanticAnalyzer extends VisitorAdaptor{
         Struct exprType = factorNew.getOptArrExpr().struct;
 
         if (exprType == null){
+            // exprType je null, znaci pravimo novi objekat klase
+            // moramo da vidimo da li je tip klasa
             if (currentTypeStruct.getKind() != Struct.Class){
                 logError(NEW_CLASS_TYPE_ERR_MSG, factorNew);
             }
@@ -1126,13 +1126,14 @@ public class SemanticAnalyzer extends VisitorAdaptor{
             return;
         }
 
+
         Relop relop = ((OptRelopExprDeclared)condFact.getOptRelopExpr()).getRelop();
 
         boolean areRefType = leftOperandType.compatibleWith(Tab.nullType) && rightOperandType.compatibleWith(Tab.nullType);
 
         boolean relopIsEqualsOrNotEquals = (relop instanceof RelopEquals) || (relop instanceof  RelopNotEquals);
 
-        // ako je referencijalni tip i ako nije operator == il i!= onda je to greska
+        // ako je referencijalni tip i ako nije operator == ili != onda je to greska
         if (areRefType && !relopIsEqualsOrNotEquals){
             logError(REF_TYPE_RELOP_ERR_MSG, condFact);
         }
@@ -1145,10 +1146,7 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
     @Override
     public void visit(CondFactRepeatListDeclared condFactList){
-        Struct leftOperandType = condFactList.getCondFactRepeatList().struct;
-
-        Struct rightOperandType = condFactList.getCondFactRepeat().struct;
-
+        // samo propagiramo bool tip
         condFactList.struct = boolType;
     }
 
@@ -1212,8 +1210,10 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
     @Override
     public void visit(ActParsRepeatListDeclared actParsRepeatListDeclared){
+        // propagiramo listu
         actParsRepeatListDeclared.structlinkedlist = actParsRepeatListDeclared.getActParsRepeatList().structlinkedlist;
 
+        // dodamo stvarni argument na kraj liste
         actParsRepeatListDeclared.structlinkedlist.add(actParsRepeatListDeclared.getActParsRepeat().struct);
     }
 
@@ -1237,24 +1237,30 @@ public class SemanticAnalyzer extends VisitorAdaptor{
 
     @Override
     public void visit(DoWhileBegin loopBegin){
-        insideLoop = true;
+
+        // uvecavamo koliko smo ugnjezdeni u petlji
+        ++insideLoop;
     }
 
     @Override
     public void visit(DoWhileEnd loopEnd){
-        insideLoop = false;
+        // napustamo jednu petlju, smanjimo ugnjezdavanje
+        --insideLoop;
     }
 
 
     @Override
     public void visit(BreakStatement breakStatement){
-        if (!insideLoop)
+        // break naredba sme biti samo unutar petlje
+        // ukoliko nismo unutar petlje prijavimo gresku
+        if (insideLoop == 0)
             logError(BREAK_STMT_ERR_MSG, breakStatement);
     }
 
     @Override
     public void visit(ContinueStatement continueStatement){
-        if (!insideLoop)
+        // isto kao i break naredba
+        if (insideLoop == 0)
             logError(CONTINUE_STMT_ERR_MSG, continueStatement);
     }
 
@@ -1314,18 +1320,18 @@ public class SemanticAnalyzer extends VisitorAdaptor{
     @Override
     public void visit(IfStart ifStart){
         // uvecavamo ugnjezdenje if-a
-        ifLevel++;
+        ++ifLevel;
     }
 
     @Override
     public void visit(IfElseStatement ifElseStatement){
         // zavrsili smo sa if-om, smanjiti nivo ugnezdavanja
-        ifLevel--;
+        --ifLevel;
     }
 
     @Override
     public void visit(IfStatement ifStatement){
         // zavrsili smo sa if-om, smanjiti nivo ugnezdavanja
-        ifLevel--;
+        --ifLevel;
     }
 }
